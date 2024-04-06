@@ -13,9 +13,17 @@ const PORT = process.env.SOCKET_PORT || 4000;
 
 app.use(express.json());
 app.use(cors());
+
+let totalUsers = 0;
 // Log when a user connects
 io.on('connection', (socket) => {
-	console.log('User connected');
+	totalUsers++;
+	console.log('User connected totalUsers: ', totalUsers);
+
+	socket.on('disconnect', () => {
+		totalUsers--;
+		console.log('User disconnected totalUsers:', totalUsers);
+	});
 });
 
 // Define the API route for pushing messages

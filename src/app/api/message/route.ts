@@ -1,6 +1,6 @@
 import { Message, chatRooms, messages } from "@/db/schema";
 import { authOptions } from "@/lib/auth";
-import { push } from "@/lib/utils";
+import { chatEventListener, push } from "@/lib/utils";
 import { messageValidator } from "@/lib/validations/message";
 import { and, eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
 			throw new Error('something went wrong!')
     }
     // realtime messaging
-    await push(message[0], chatRoomId);
+    await push(message[0], chatEventListener(chatRoomId));
 		return new Response('OK');
 	} catch (error) {
 		if (error instanceof z.ZodError) {
@@ -57,7 +57,6 @@ export async function POST(req: Request) {
 				status: 422,
 			});
 		}
-
 		return new Response('Invalid request.', {
 			status: 400,
 		});

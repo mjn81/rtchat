@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { and, eq, or } from "drizzle-orm";
 import { Message, chatRooms, friendRequestStatus, friendRequests, messages } from "@/db/schema";
-import { createChatRoomForTwoFriends, push, requestFriendToJoinMessage } from "@/lib/utils";
+import { chatEventListener, createChatRoomForTwoFriends, push, requestFriendToJoinMessage } from "@/lib/utils";
 import { v4 as uuidv4 } from "uuid";
 import { addMembersToChatRoom, generateChatRoomUrl } from "@/helpers/query/chatRoom";
 
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
 		const sentInvites = await db?.insert(messages).values(invites).returning();
 		// realtime message push
 		Promise.all(sentInvites.map(async (invite) => { 
-			await push(invite, invite.chatRoomId);
+			await push(invite, chatEventListener(invite.chatRoomId));
 		}))
 
 		return new Response('OK');

@@ -1,10 +1,12 @@
 'use client';
-import { cn } from "@/lib/utils";
+import { Socket, io } from "socket.io-client";
+import { chatEventListener, cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import type { FC } from "react";
 import { format } from 'date-fns';
 import Image from "next/image";
 import { Message } from "@/db/schema";
+import { SOCKET_URL } from "@/constants/socket";
 
 
 interface MessagesProps {
@@ -22,28 +24,26 @@ const formatTimestamp = (timestamp: Date) => {
  
 const Messages: FC<MessagesProps> = ({chatId,initialMessages, sessionId, chatPartner, sessionImg}) => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const scrollDownRef = useRef<HTMLDivElement | null>(null);
+	const scrollDownRef = useRef<HTMLDivElement | null>(null);
+	
 	useEffect(() => {
-		// pusherClient.subscribe(toPusherKey(`chat:${chatId}`));
+		const socket = io(`${SOCKET_URL}`);
+		socket.on(chatEventListener(chatId), (message: Message) => {
+			setMessages((prevMessages) => [message, ...prevMessages]);
+		});
 
-		// const messageHandler = (data: Message) => {
-		// 	setMessages((prev) => [data, ...prev]);
-		// };
-
-		// pusherClient.bind(INCOMING_MESSAGES, messageHandler);
-
-		// return () => {
-		// 	pusherClient.unsubscribe(toPusherKey(`chat:${chatId}`));
-		// 	pusherClient.unbind(INCOMING_MESSAGES, messageHandler);
-		// };
+		return () => {
+			socket.removeListener(chatEventListener(chatId));
+			socket.disconnect();
+		};
 	}, [sessionId, chatId]);
   return (
 		<div
 			id="messages"
 			className="flex h-full flex-1 flex-col-reverse gap-2 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch"
-    >
-      <div ref={scrollDownRef}></div>
-      {messages.map((message, index) => {
+		>
+			<div ref={scrollDownRef}></div>
+			{messages.map((message, index) => {
         const isCurrentUser = message.sender === sessionId;
 
         const hasNextMessageFromSameUser = messages[index - 1]?.sender === messages[index].sender
@@ -77,7 +77,7 @@ const Messages: FC<MessagesProps> = ({chatId,initialMessages, sessionId, chatPar
 									<span className="block leading-tight text-gray-400 text-[0.6rem]">
 										{formatTimestamp(message.updatedAt)}
 									</span>
-									{message.text}{' '}
+									{message.text}
 								</span>
 							</div>
 							<div
@@ -99,7 +99,7 @@ const Messages: FC<MessagesProps> = ({chatId,initialMessages, sessionId, chatPar
 					</div>
 				);
       })}
-    </div>
+		</div>
 	);
 }
  

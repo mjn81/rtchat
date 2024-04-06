@@ -3,6 +3,7 @@
 import { FC, useState } from 'react';
 import Image from 'next/image';
 import { signIn } from 'next-auth/react';
+import toast from 'react-hot-toast';
 // import toast from 'react-hot-toast';
 
 interface LoginProps {}
@@ -15,7 +16,7 @@ const Login: FC<LoginProps> = () => {
 			await signIn('google');
 		} catch (error) {
 			console.log(error);
-			// toast.error('Something went wrong with your login.');
+			toast.error('Something went wrong with your login.');
 		} finally {
 			setIsLoading(false);
 		}

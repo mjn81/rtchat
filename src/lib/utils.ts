@@ -1,14 +1,20 @@
 import { Message } from "@/db/schema";
+import { SOCKET_API_URL } from "@/constants/socket";
 import axios from "axios";
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 export const push = async (message: Message, id: string) => {
-  return axios.post('http://localhost:4000/api/push', {
+  return axios.post(`${SOCKET_API_URL}/api/push`, {
 		message,
 		id,
 	});
 }
+
+export const chatEventListener = (chatId: string) => `chat:${chatId}`;
+export const friendRequestEventListener = (chatId: string) => `friendRequest:${chatId}`;
+// export const chatEventListener = (chatId: string) => `chat:${chatId}`;
+
 
 export const createChatRoomForTwoFriends = (friendId1: string, friendId2: string) =>
 	[friendId1, friendId2].sort().join('$');
