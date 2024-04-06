@@ -6,7 +6,7 @@ import { and, eq, or } from 'drizzle-orm';
 import { addMembersToChatRoom } from '@/helpers/query/chatRoom';
 
 export async function GET(
-	_: Request,
+	req: Request,
 	{ params }: { params: { inviteurl: string } }
 ) {
 	try {
@@ -25,6 +25,15 @@ export async function GET(
 
 		if (!doesRoomExist) {
 			return new Response('Room does not exist', {
+				status: 400,
+			});
+		}
+		const alreadyMember = await db.query.chatRoomMembers.findFirst({
+			where: (room) => and(eq(room.userId, session.user.id),eq(room.chatRoomId, doesRoomExist.id))
+		})
+
+		if (alreadyMember) {
+			return new Response('Already Member of this room', {
 				status: 400,
 			});
 		}

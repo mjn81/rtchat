@@ -13,7 +13,7 @@ interface MessagesProps {
 	initialMessages: Message[];
 	sessionId: string;
 	sessionImg: string | null | undefined;
-	chatPartner: User;
+	chatPartners: User[];
 	chatId: string;
 }
 
@@ -22,7 +22,7 @@ const formatTimestamp = (timestamp: Date) => {
 	return format(timestamp, 'MM/dd/yy HH:mm a');
 }
  
-const Messages: FC<MessagesProps> = ({chatId,initialMessages, sessionId, chatPartner, sessionImg}) => {
+const Messages: FC<MessagesProps> = ({chatId,initialMessages, sessionId, chatPartners, sessionImg}) => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
 	const scrollDownRef = useRef<HTMLDivElement | null>(null);
 	
@@ -47,7 +47,7 @@ const Messages: FC<MessagesProps> = ({chatId,initialMessages, sessionId, chatPar
         const isCurrentUser = message.sender === sessionId;
 
         const hasNextMessageFromSameUser = messages[index - 1]?.sender === messages[index].sender
-        
+				const partner = chatPartners.find((partner) => partner.id === message.sender);
         return (
 					<div
 						className="chat-message"
@@ -59,10 +59,13 @@ const Messages: FC<MessagesProps> = ({chatId,initialMessages, sessionId, chatPar
 							})}
 						>
 							<div
-								className={cn('flex flex-col space-y-2 text-base max-w-xs mx-2', {
-									'order-1 items-end': isCurrentUser,
-									'order-2 items-start': !isCurrentUser,
-								})}
+								className={cn(
+									'flex flex-col space-y-2 text-base max-w-xs mx-2',
+									{
+										'order-1 items-end': isCurrentUser,
+										'order-2 items-start': !isCurrentUser,
+									}
+								)}
 							>
 								<span
 									className={cn('px-4 py-2 rounded-lg inline-block', {
@@ -77,7 +80,11 @@ const Messages: FC<MessagesProps> = ({chatId,initialMessages, sessionId, chatPar
 									<span className="block leading-tight text-gray-400 text-[0.6rem]">
 										{formatTimestamp(message.updatedAt)}
 									</span>
-									{message.text}
+									<div
+										dangerouslySetInnerHTML={{
+											__html: message.text,
+										}}
+									></div>
 								</span>
 							</div>
 							<div
@@ -89,7 +96,7 @@ const Messages: FC<MessagesProps> = ({chatId,initialMessages, sessionId, chatPar
 							>
 								<Image
 									fill
-									src={isCurrentUser ? sessionImg || '' : chatPartner.image || ''}
+									src={isCurrentUser ? sessionImg || '' : partner?.image || ''}
 									alt="profile picture"
 									referrerPolicy="no-referrer"
 									className="rounded-full"

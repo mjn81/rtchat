@@ -26,11 +26,11 @@ export const getFriendFromChatRoomName = (roomName: string, userId: string) =>
 
 
 export const requestFriendToJoinMessage = (url: string) =>
-	`Join Our Chatroom!
+	`<pre>Join Our Chatroom!
 	Hi,
-	Hope you're good! We've got this cool chatroom going on and I thought you might want to join in. Just click here ${url} to jump in!
+	Hope you're good! We've got this cool chatroom going on and I thought you might want to join in. <a href="${url}">Just click here</a> to jump in!
 	Catch you there!
-	Cheers`;
+	Cheers</pre>`;
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));

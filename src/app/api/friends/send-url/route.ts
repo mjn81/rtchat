@@ -57,7 +57,9 @@ export async function POST(req: Request) {
 				});
 		}
 		const mid = uuidv4();
-		const textToJoin = requestFriendToJoinMessage(url)
+		const baseURL = new URL(req.url).origin;
+		const absoluteURL = `${baseURL}/join/${url}`
+		const textToJoin = requestFriendToJoinMessage(absoluteURL)
 	
 		const invites: any[] = [];
 		for (const userId of userIdArray) {
