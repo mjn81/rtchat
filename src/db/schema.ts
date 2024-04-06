@@ -2,14 +2,12 @@ import {
   timestamp,
   pgTable,
   text,
-  serial,
   varchar,
-  primaryKey,
   integer,
-  date,
-  boolean,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "@auth/core/adapters";
+import { sql } from "drizzle-orm";
 
 export const users = pgTable("user", {
   id: text("id").notNull().primaryKey(),
@@ -61,14 +59,72 @@ export const verificationTokens = pgTable(
   })
 );
 
-export const items = pgTable("items", {
-  id: serial("id").primaryKey(),
-  name: varchar("name", { length: 256 }).notNull(),
-  quantity: integer("quantity").notNull().default(0),
-  userId: text("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  isLow: boolean("isLow").notNull().default(false),
+export const messageType = pgEnum('message_type', [
+	'TEXT',
+	'IMAGE',
+	'FILE',
+	'AUDIO',
+]);
+
+export const messages = pgTable('message', {
+	id: text('id').notNull().primaryKey(),
+	text: text('text').notNull(),
+	chatRoomId: text('chatRoomId').notNull().references(() => chatRooms.id, { onDelete: 'cascade' }),
+	type: messageType('type').notNull().default('TEXT'),
+	sender: text('sender')
+		.notNull()
+		.references(() => users.id),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export type Item = typeof items.$inferSelect;
+export type Message = typeof messages.$inferSelect; 
+
+export const chatRooms = pgTable('chatRoom', {
+	id: text('id').notNull().primaryKey(),
+	name: text('name').notNull(),
+	url: text('url').notNull().unique(),
+	creatorId: text('creatorId')
+		.notNull()
+		.references(() => users.id, { onDelete: 'set null' }),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export type ChatRoom = typeof chatRooms.$inferSelect;
+
+export const chatRoomMembers = pgTable(
+	'chatRoomMember',
+	{
+		chatRoomId: text('chatRoomId')
+			.notNull()
+			.references(() => chatRooms.id, { onDelete: 'cascade' }),
+		userId: text('userId')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		joinedAt: timestamp('joined_at').notNull().defaultNow(),
+	},
+	(vt) => ({
+		primaryKey: [vt.chatRoomId, vt.userId],
+	})
+);
+
+export type ChatRoomMember = typeof chatRoomMembers.$inferSelect;
+
+export const friendRequestStatus = pgEnum('friend_request_status', [
+  'PENDING',
+  'ACCEPTED',
+  'DECLINED',
+]);
+
+export const friendRequests = pgTable('friendRequest', {
+  id: text('id').notNull().primaryKey(),
+  fromUserId: text('fromUserId').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  toUserId: text('toUserId').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  status: varchar('status').notNull().default('PENDING'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export type FriendRequest = typeof friendRequests.$inferSelect;
+

@@ -77,7 +77,7 @@ export const authOptions = {
 			return session;
 		},
 		redirect() {
-      return '/dashboard';
+      return '/chat';
     }
 	},
 } satisfies AuthOptions;
