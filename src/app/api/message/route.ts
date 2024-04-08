@@ -1,6 +1,6 @@
 import { Message, chatRooms, messages } from "@/db/schema";
 import { authOptions } from "@/lib/auth";
-import { chatEventListener, push } from "@/lib/utils";
+import { chatEventListener, newMessageEventListener, push } from "@/lib/utils";
 import { messageValidator } from "@/lib/validations/message";
 import { and, eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
@@ -49,7 +49,22 @@ export async function POST(req: Request) {
 			throw new Error('something went wrong!')
     }
     // realtime messaging
-    await push(message[0], chatEventListener(chatRoomId));
+		await push(message[0], chatEventListener(chatRoomId));
+		const chatRoomMembers = await db?.query.chatRoomMembers.findMany({
+			columns: {
+				userId: true,
+			},
+			where: (members) => eq(members.chatRoomId, chatRoomId),
+		}) as { userId: string }[];
+
+		// send new Message event to all members of the chat room
+		Promise.all(chatRoomMembers.map(async (member) => {
+			if (member.userId === session.user.id) {
+				return;
+			}
+			await push(message[0], newMessageEventListener(member.userId));
+		}));
+
 		return new Response('OK');
 	} catch (error) {
 		if (error instanceof z.ZodError) {

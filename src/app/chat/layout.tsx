@@ -90,7 +90,7 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
 						<li>
 							<SidebarChatList
 								sessionId={session.user.id}
-								chats={processesChats}
+								initialChats={processesChats}
 							/>
 						</li>
 

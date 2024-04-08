@@ -94,9 +94,32 @@ export async function POST(req: Request) {
 
 		// add the two friends to the chat room
 		await addMembersToChatRoom(id, [idToAdd, session.user.id]);
+
+		const friendInfo = await db.query.users.findFirst({
+			columns: {
+				name: true,
+				id: true,
+				email: true,
+			},
+			where: (user) => eq(user.id, idToAdd),
+		}) as User;
+		// reverse the users id and info for push
+		const usersInfo = [{
+			id: session.user.id,
+			name: friendInfo?.name ?? friendInfo?.email,
+		}, {
+			id: idToAdd,
+			name: session.user?.name ?? session.user.email,
+		}];
 		// push for new room creation
-		const friendsIds = [session.user.id, idToAdd];
-		await Promise.all(friendsIds.map((id) => push(friendsRoom, newRoomEventListener(id))));
+		await Promise.all(usersInfo.map(({id, name}) => {
+			// get each friend info and change chatroom name to friend name
+			const room = {
+				...friendsRoom,
+				name,
+			};
+			return push(room, newRoomEventListener(id))
+		}));
 		return new Response('OK');
 	} catch (error) {
     if (error instanceof z.ZodError) {
