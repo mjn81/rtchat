@@ -12,4 +12,4 @@ type User = {
 	email: string;
 	image: string | null;
 	emailVerified: Date | null;
-}
+};

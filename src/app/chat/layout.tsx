@@ -29,7 +29,6 @@ const sideBarOptions: SideBarOption[] = [
 
 const Layout: FC<LayoutProps> = async ({ children }) => {
 	const session = await getServerSession(authOptions);
-
 	if (!session) notFound();
   // make the query remove duplicate
   const chats = await db

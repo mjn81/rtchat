@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { z } from 'zod';
 import { and, eq, or } from 'drizzle-orm';
 import { friendRequestStatus, friendRequests } from '@/db/schema';
+import { changeFriendRequestStatusEventListener, push } from '@/lib/utils';
 
 export async function POST(req: Request) {
 	try {
@@ -71,6 +72,12 @@ export async function POST(req: Request) {
 					eq(friendRequests.status, friendRequestStatus.enumValues[0])
 				)
 			);
+
+		// push notification to friend status change
+		await push(
+			{ status: 'deny' },
+			changeFriendRequestStatusEventListener(session.user.id)
+		);
 
 		return new Response('OK');
 	} catch (error) {

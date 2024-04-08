@@ -28,12 +28,12 @@ io.on('connection', (socket) => {
 
 // Define the API route for pushing messages
 app.post('/api/push', (req, res) => {
-	const { message, id } = req.body;
-	if (!message) {
-		return res.status(400).json({ error: 'roomId and message are required' });
+	const { data, id } = req.body;
+	if (!data) {
+		return res.status(400).json({ error: 'eventId and data are required' });
 	}
 
-	io.emit(id, message);
+	io.emit(id, data);
 	return res.json({ success: true });
 });
 

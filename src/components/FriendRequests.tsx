@@ -1,12 +1,13 @@
 'use client';
-import { FriendRequest } from "@/db/schema";
+import { friendRequestEventListener } from "@/lib/utils";
+import { useSocketStore } from "@/store/socket";
+import { IncomingFriendRequest } from "@/types/types";
 import axios from "axios";
 import { Check, UserPlus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 
-type IncomingFriendRequest = {friendRequest: FriendRequest, user: User};
 interface FriendRequestsProps {
   incomingFriendRequests: IncomingFriendRequest[];
   sessionId: string;
@@ -17,25 +18,20 @@ const FriendRequests: FC<FriendRequestsProps> = ({ sessionId, incomingFriendRequ
 	const [friendRequests, setFriendRequests] = useState<IncomingFriendRequest[]>(
 		incomingFriendRequests
 	);
-
+	const connect = useSocketStore((state) => state.connect);
+	const disconnect = useSocketStore((state) => state.disconnect);
 	useEffect(() => {
-		// pusherClient.subscribe(
-		// 	toPusherKey(`user:${sessionId}:${INCOMING_FRIEND_REQ}`)
-		// );
-
-		// const friendRequestHandler = (data: IncomingFriendRequest) => {
-		// 	setFriendRequests((prev) => [...prev, data]);
-		// }
-
-		// pusherClient.bind(INCOMING_FRIEND_REQ, friendRequestHandler);
-
-		// return () => {
-		// 	pusherClient.unsubscribe(toPusherKey(`user:${sessionId}:${INCOMING_FRIEND_REQ}`));
-		// 	pusherClient.unbind(INCOMING_FRIEND_REQ, friendRequestHandler);
-		// }
+		const socket = connect();
+		socket.on(friendRequestEventListener(sessionId), (request: IncomingFriendRequest) => {
+			setFriendRequests((prev) => [...prev, request]);
+		});
+		return () => {
+			socket.removeListener(friendRequestEventListener(sessionId));
+			disconnect();
+		}
 	}, [sessionId]);
 	
-	const acceptFriend = async (senderId: string) => {
+	const acceptFriend = async (senderId: string) => {		
 		await axios.post('/api/friends/accept', {
 			id: senderId,
 		});
@@ -43,8 +39,6 @@ const FriendRequests: FC<FriendRequestsProps> = ({ sessionId, incomingFriendRequ
 		setFriendRequests((prev) =>
 			prev.filter((request) => request.friendRequest.fromUserId !== senderId)
 		);
-
-		router.refresh();
 	};
 
 	const denyFriend = async (senderId: string) => {
@@ -55,8 +49,6 @@ const FriendRequests: FC<FriendRequestsProps> = ({ sessionId, incomingFriendRequ
 		setFriendRequests((prev) =>
 			prev.filter((request) => request.friendRequest.fromUserId !== senderId)
 		);
-
-		router.refresh();
 	};
 	return (
 		<>

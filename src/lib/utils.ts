@@ -4,16 +4,18 @@ import axios from "axios";
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-export const push = async (message: Message, id: string) => {
+export const push = async (data: any, id: string) => {
   return axios.post(`${SOCKET_API_URL}/api/push`, {
-		message,
+		data,
 		id,
 	});
 }
 
 export const chatEventListener = (chatId: string) => `chat:${chatId}`;
-export const friendRequestEventListener = (chatId: string) => `friendRequest:${chatId}`;
-// export const chatEventListener = (chatId: string) => `chat:${chatId}`;
+export const friendRequestEventListener = (userId: string) =>
+	`friendRequest:${userId}`;
+export const changeFriendRequestStatusEventListener = (userId: string) =>
+	`changeFriendRequestStatus:${userId}`;
 
 
 export const createChatRoomForTwoFriends = (friendId1: string, friendId2: string) =>

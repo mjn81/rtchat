@@ -1,4 +1,6 @@
 'use client'
+import { changeFriendRequestStatusEventListener, friendRequestEventListener } from "@/lib/utils";
+import { useSocketStore } from "@/store/socket";
 import { User } from "lucide-react";
 import Link from "next/link";
 import type { FC } from "react";
@@ -13,12 +15,24 @@ const FriendRequestSidebarOption: FC<FriendRequestSidebarOptionProps> = ({
   sessionId,
   initialUnseenRequestCount = 0
 }) => {
-
   const [unseenRequestCount, setUnseenRequestCount] = useState<number>(
     initialUnseenRequestCount
   )
+  const connect = useSocketStore((state) => state.connect); 
+  const disconnect = useSocketStore((state) => state.disconnect); 
   useEffect(() => {
-	
+    const socket = connect();
+    socket.on(friendRequestEventListener(sessionId), () => {
+      setUnseenRequestCount((prev) => prev + 1);
+    });
+    socket.on(changeFriendRequestStatusEventListener(sessionId), () => {
+      setUnseenRequestCount((prev) => prev - 1);
+    });
+    return () => {
+      socket.removeListener(friendRequestEventListener(sessionId))
+      socket.removeListener(changeFriendRequestStatusEventListener(sessionId));
+      disconnect();
+    };
 	}, [sessionId]);
   return (
 		<Link

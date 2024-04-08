@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { and, eq, or } from "drizzle-orm";
 import { chatRooms, friendRequestStatus, friendRequests } from "@/db/schema";
-import { createChatRoomForTwoFriends } from "@/lib/utils";
+import { changeFriendRequestStatusEventListener, createChatRoomForTwoFriends, push } from "@/lib/utils";
 import { v4 as uuidv4 } from "uuid";
 import { addMembersToChatRoom } from "@/helpers/query/chatRoom";
 
@@ -82,6 +82,9 @@ export async function POST(req: Request) {
 
 		// add the two friends to the chat room
 		await addMembersToChatRoom(id, [idToAdd, session.user.id]);
+
+		// push notification to friend status change
+		await push({status: 'accept'}, changeFriendRequestStatusEventListener(session.user.id));
 
 		return new Response('OK');
 	} catch (error) {

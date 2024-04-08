@@ -6,6 +6,8 @@ import { and, eq, or } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
+import { friendRequestEventListener, push } from "@/lib/utils";
+import { IncomingFriendRequest } from "@/types/types";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -81,22 +83,29 @@ export async function POST(req: Request) {
 			}
     
     // valid friend request here
-  
-    // pusherServer.trigger(
-		// 	toPusherKey(`user:${idToAdd}:${INCOMING_FRIEND_REQ}`),
-		// 	INCOMING_FRIEND_REQ,
-		// 	{
-		// 		senderId: session.user.id,
-    //     senderEmail: session.user.email,
-    //   },
-		// );
 
-    await db.insert(friendRequests).values({
+    const dbFriendRequest = await db.insert(friendRequests).values({
       id: uuidv4(),
       fromUserId: session.user.id,
       toUserId: idToAdd.id,
       status: friendRequestStatus.enumValues[0],
-    });
+    }).returning();
+   
+    const incomingRequest = {
+      friendRequest: dbFriendRequest[0],
+      user: {
+        id: session.user.id,
+        email: session.user.email ?? '',
+        name: session.user.name ?? '',
+        image: session.user.image ?? '',
+        emailVerified: null,
+      },
+    } satisfies IncomingFriendRequest
+    // realtime friend request push
+    await push(
+      incomingRequest,
+			friendRequestEventListener(idToAdd.id)
+		);
 
     return new Response('OK');
   } catch (error) {

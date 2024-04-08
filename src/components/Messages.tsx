@@ -1,5 +1,4 @@
 'use client';
-import { Socket, io } from "socket.io-client";
 import { chatEventListener, cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import type { FC } from "react";
@@ -7,6 +6,7 @@ import { format } from 'date-fns';
 import Image from "next/image";
 import { Message } from "@/db/schema";
 import { SOCKET_URL } from "@/constants/socket";
+import { useSocketStore } from "@/store/socket";
 
 
 interface MessagesProps {
@@ -25,16 +25,17 @@ const formatTimestamp = (timestamp: Date) => {
 const Messages: FC<MessagesProps> = ({chatId,initialMessages, sessionId, chatPartners, sessionImg}) => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
 	const scrollDownRef = useRef<HTMLDivElement | null>(null);
-	
+	const connect = useSocketStore((state) => state.connect);
+	const disconnect = useSocketStore((state) => state.disconnect);
 	useEffect(() => {
-		const socket = io(`${SOCKET_URL}`);
+		const socket = connect();		
 		socket.on(chatEventListener(chatId), (message: Message) => {
 			setMessages((prevMessages) => [message, ...prevMessages]);
 		});
 
 		return () => {
 			socket.removeListener(chatEventListener(chatId));
-			socket.disconnect();
+			disconnect();
 		};
 	}, [sessionId, chatId]);
   return (
