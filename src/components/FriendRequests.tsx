@@ -4,7 +4,6 @@ import { useSocketStore } from "@/store/socket";
 import { IncomingFriendRequest } from "@/types/types";
 import axios from "axios";
 import { Check, UserPlus, X } from "lucide-react";
-import { useRouter } from "next/navigation";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 
@@ -14,7 +13,6 @@ interface FriendRequestsProps {
 }
  
 const FriendRequests: FC<FriendRequestsProps> = ({ sessionId, incomingFriendRequests }) => {
-	const router = useRouter();
 	const [friendRequests, setFriendRequests] = useState<IncomingFriendRequest[]>(
 		incomingFriendRequests
 	);
@@ -22,11 +20,12 @@ const FriendRequests: FC<FriendRequestsProps> = ({ sessionId, incomingFriendRequ
 	const disconnect = useSocketStore((state) => state.disconnect);
 	useEffect(() => {
 		const socket = connect();
-		socket.on(friendRequestEventListener(sessionId), (request: IncomingFriendRequest) => {
+		const onFriendRequest = (request: IncomingFriendRequest) => {
 			setFriendRequests((prev) => [...prev, request]);
-		});
+		}
+		socket.on(friendRequestEventListener(sessionId), onFriendRequest);
 		return () => {
-			socket.removeListener(friendRequestEventListener(sessionId));
+			socket.removeListener(friendRequestEventListener(sessionId), onFriendRequest);
 			disconnect();
 		}
 	}, [sessionId]);
@@ -39,6 +38,7 @@ const FriendRequests: FC<FriendRequestsProps> = ({ sessionId, incomingFriendRequ
 		setFriendRequests((prev) =>
 			prev.filter((request) => request.friendRequest.fromUserId !== senderId)
 		);
+
 	};
 
 	const denyFriend = async (senderId: string) => {
@@ -49,6 +49,7 @@ const FriendRequests: FC<FriendRequestsProps> = ({ sessionId, incomingFriendRequ
 		setFriendRequests((prev) =>
 			prev.filter((request) => request.friendRequest.fromUserId !== senderId)
 		);
+
 	};
 	return (
 		<>

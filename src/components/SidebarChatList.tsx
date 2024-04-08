@@ -1,5 +1,6 @@
 'use client';
 import { ChatRoom, Message } from '@/db/schema';
+import { useSocketStore } from '@/store/socket';
 import { usePathname, useRouter } from 'next/navigation';
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
@@ -10,10 +11,11 @@ interface SidebarChatListProps {
 }
 
 const SidebarChatList: FC<SidebarChatListProps> = ({ chats, sessionId }) => {
-	const router = useRouter();
   const pathname = usePathname();
   const [currentChatRoomId, setCurrentChatRoomId] = useState<string | null>(null);
 	const [unseenMessages, setUnseenMessages] = useState<Message[]>([]);
+	const connect = useSocketStore((state) => state.connect);
+	const disconnect = useSocketStore((state) => state.disconnect);
 	useEffect(() => {
     if (pathname?.includes('chat')) {
       const chatRoomId = pathname.split('/').pop();
@@ -27,13 +29,15 @@ const SidebarChatList: FC<SidebarChatListProps> = ({ chats, sessionId }) => {
 	}, [pathname]);
 
 	useEffect(() => {
+		const socket = connect();
 
 		const newMessageHandler = (data: Message) => {};
-		const newFriendHandler = (data: User) => {
-			router.refresh();
+		const newRoomHandler = (data: User) => {
+			
 		};
 
 		return () => {
+			disconnect();
 		};
 	}, []);
 

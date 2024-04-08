@@ -26,7 +26,10 @@ const FriendRequestSidebarOption: FC<FriendRequestSidebarOptionProps> = ({
       setUnseenRequestCount((prev) => prev + 1);
     });
     socket.on(changeFriendRequestStatusEventListener(sessionId), () => {
-      setUnseenRequestCount((prev) => prev - 1);
+      setUnseenRequestCount((prev) => {
+        if (prev === 0) return prev;
+        return prev - 1
+      });
     });
     return () => {
       socket.removeListener(friendRequestEventListener(sessionId))

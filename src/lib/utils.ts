@@ -17,6 +17,7 @@ export const friendRequestEventListener = (userId: string) =>
 export const changeFriendRequestStatusEventListener = (userId: string) =>
 	`changeFriendRequestStatus:${userId}`;
 
+export const newRoomEventListener = (userId: string) => `newRoom:${userId}`;
 
 export const createChatRoomForTwoFriends = (friendId1: string, friendId2: string) =>
 	[friendId1, friendId2].sort().join('$');

@@ -13,14 +13,14 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { email: emailToAdd } = addFriendValidator.parse(body.email) 
     
-    const idToAdd = (await db.query.users.findFirst({
+    const userToAdd = (await db.query.users.findFirst({
       where: (requests) => eq(requests.email, emailToAdd),
       columns: {
         id: true,
       }
     }));
    
-    if (!idToAdd) {
+    if (!userToAdd) {
       return new Response('The requested user does not exist!', {
         status: 400
       });
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       })
     }
 
-    if (idToAdd.id === session.user.id) {
+    if (userToAdd.id === session.user.id) {
       return new Response('You cannot add yourself as a friend!');
     }
 
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 			where: (requests) =>
 				and(
 					eq(requests.fromUserId, session.user.id),
-          eq(requests.toUserId, idToAdd.id),
+          eq(requests.toUserId, userToAdd.id),
           eq(requests.status, friendRequestStatus.enumValues[0])
 				),
 		});
@@ -64,11 +64,11 @@ export async function POST(req: Request) {
 				or(
 					and(
 						eq(requests.fromUserId, session.user.id),
-						eq(requests.toUserId, idToAdd.id),
+						eq(requests.toUserId, userToAdd.id),
 						eq(requests.status, friendRequestStatus.enumValues[1])
 					),
 					and(
-						eq(requests.fromUserId, idToAdd.id),
+						eq(requests.fromUserId, userToAdd.id),
 						eq(requests.toUserId, session.user.id),
 						eq(requests.status, friendRequestStatus.enumValues[1])
 					)
@@ -87,7 +87,7 @@ export async function POST(req: Request) {
     const dbFriendRequest = await db.insert(friendRequests).values({
       id: uuidv4(),
       fromUserId: session.user.id,
-      toUserId: idToAdd.id,
+      toUserId: userToAdd.id,
       status: friendRequestStatus.enumValues[0],
     }).returning();
    
@@ -104,9 +104,8 @@ export async function POST(req: Request) {
     // realtime friend request push
     await push(
       incomingRequest,
-			friendRequestEventListener(idToAdd.id)
-		);
-
+      friendRequestEventListener(userToAdd.id)
+    );
     return new Response('OK');
   } catch (error) {
     if (error instanceof z.ZodError) {
