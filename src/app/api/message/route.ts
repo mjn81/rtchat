@@ -6,6 +6,7 @@ import { and, eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
+import { ExtendedMessage } from "@/types/types";
 
 export async function POST(req: Request) {
   try {
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
 				sender: session.user.id,
 			})
       .returning();
-    
+		
 		if (!message) {
 			throw new Error('something went wrong!')
     }
@@ -57,12 +58,16 @@ export async function POST(req: Request) {
 			where: (members) => eq(members.chatRoomId, chatRoomId),
 		}) as { userId: string }[];
 
+		const notifMessage: ExtendedMessage = {
+			message: message[0],
+			sender: session.user as User,
+		}
 		// send new Message event to all members of the chat room
 		Promise.all(chatRoomMembers.map(async (member) => {
 			if (member.userId === session.user.id) {
 				return;
 			}
-			await push(message[0], newMessageEventListener(member.userId));
+			await push(notifMessage, newMessageEventListener(member.userId));
 		}));
 
 		return new Response('OK');

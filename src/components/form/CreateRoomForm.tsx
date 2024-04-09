@@ -64,11 +64,11 @@ const CreateRoomForm: FC<CreateRoomFormProps> = () => {
 		>
 			<Link
 				href=".."
-				className="absolute top-1.5 right-1.5 w-4 h-4 p-0.5 aspect-square rounded-full bg-rose-600 flex justify-center items-center"
+				className="absolute top-1.5 right-1.5 w-9 h-9 aspect-square rounded-full flex justify-center items-center"
 			>
-				<X color="white" />
+				<X className="text-gray-900" />
 			</Link>
-			<p className="block text-md font-medium leading-6 text-gray-900">
+			<p className="block text-md mt-3 font-medium leading-6 text-gray-900">
 				Create New Room
 			</p>
 

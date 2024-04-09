@@ -1,11 +1,14 @@
 'use client';
 import { ChatRoom, Message } from '@/db/schema';
-import { newMessageEventListener, newRoomEventListener } from '@/lib/utils';
+import { getCurrentChatId, newMessageEventListener, newRoomEventListener } from '@/lib/utils';
 import { useSocketStore } from '@/store/socket';
+import { ExtendedMessage } from '@/types/types';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import UnseenChatToast from './UnseenChatToast';
 
 interface SidebarChatListProps {
 	initialChats: ChatRoom[];
@@ -14,21 +17,35 @@ interface SidebarChatListProps {
 
 const SidebarChatList: FC<SidebarChatListProps> = ({ initialChats, sessionId }) => {
 	const pathname = usePathname();
+	const [currentChatId, setCurrentChatId] = useState<string>(getCurrentChatId(pathname));
 	const [chats, setChats] = useState<ChatRoom[]>(initialChats);
 	const [unseenMessages, setUnseenMessages] = useState<Message[]>([]);
 	const connect = useSocketStore((state) => state.connect);
 	const disconnect = useSocketStore((state) => state.disconnect);
 	useEffect(() => {
-    if (pathname?.includes('chat')) {
+		if (pathname?.includes('chat')) {
+			setCurrentChatId(() => getCurrentChatId(pathname));
 			setUnseenMessages((prev) =>
-				prev.filter((msg) => !pathname.includes(msg.chatRoomId))
+			prev.filter((msg) => !pathname.includes(msg.chatRoomId))
 			);
     }
 	}, [pathname]);
 	useEffect(() => {
 		const socket = connect();
-		const newMessageHandler = (data: Message) => {
-			setUnseenMessages((prev) => [...prev, data]);
+		const newMessageHandler = (data: ExtendedMessage) => {
+			// notification logic
+			const shouldNotify = data.message.chatRoomId !== currentChatId;
+			console.log('sg', shouldNotify, data.message.chatRoomId, currentChatId);
+			if (!shouldNotify) return;
+			toast.custom((t) => (
+				<UnseenChatToast t={t} 
+					chatId={data.message.chatRoomId}
+					message={data.message} 
+					senderImage={data.sender.image ?? ''}
+					senderName={data.sender.name ?? ''}
+				/>
+			));
+			setUnseenMessages((prev) => [...prev, data.message]);
 		};
 		const newRoomHandler = (data: ChatRoom) => {
 			setChats((prev) => [...prev, data]);
@@ -42,8 +59,7 @@ const SidebarChatList: FC<SidebarChatListProps> = ({ initialChats, sessionId }) 
 			socket.removeListener(newRoomEventListener(sessionId), newRoomHandler);
 			disconnect();
 		};
-	}, []);
-
+	});
 	return (
 		<ul role="list" className="max-h-[25rem] overflow-y-auto -mx-2 space-y-1">
 			{chats.sort().map((chat) => {

@@ -40,3 +40,11 @@ export const requestFriendToJoinMessage = (url: string) =>
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
+
+
+export const getCurrentChatId = (currentPath: string | undefined | null) => {
+	if (!currentPath || !currentPath.includes('chat')) {
+		return '';
+	}
+	return currentPath.split('/').pop() as string;
+}

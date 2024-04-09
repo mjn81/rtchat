@@ -7,7 +7,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Cross, X } from "lucide-react";
+import {  X } from "lucide-react";
 
 interface AddFriendFormProps {
   
@@ -68,11 +68,11 @@ const AddFriendForm: FC<AddFriendFormProps> = () => {
 		>
 			<Link
 				href=".."
-				className="absolute top-1.5 right-1.5 w-4 h-4 p-0.5 aspect-square rounded-full bg-rose-600 flex justify-center items-center"
+				className="absolute top-1.5 right-1.5 w-9 h-9 aspect-square rounded-full flex justify-center items-center"
 			>
-				<X color="white" />
+				<X className="text-gray-900" />
 			</Link>
-			<section className="flex justify-between items-center">
+			<section className="flex mt-3 justify-between items-center">
 				<label
 					htmlFor="email"
 					className="block text-md font-medium leading-6 text-gray-900"

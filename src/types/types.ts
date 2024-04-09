@@ -1,3 +1,8 @@
-import { FriendRequest } from "@/db/schema";
+import { FriendRequest, Message } from "@/db/schema";
 
 export type IncomingFriendRequest = { friendRequest: FriendRequest; user: User };
+
+export type ExtendedMessage = {
+  message: Message;
+  sender: Omit<User, "emailVerified">;
+}
