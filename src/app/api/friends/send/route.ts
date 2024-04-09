@@ -5,7 +5,6 @@ import { addFriendValidator } from "@/lib/validations/add-friend";
 import { and, eq, or } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
 import { friendRequestEventListener, push } from "@/lib/utils";
 import { IncomingFriendRequest } from "@/types/types";
 export async function POST(req: Request) {
@@ -13,25 +12,26 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { email: emailToAdd } = addFriendValidator.parse(body.email) 
     
-    const userToAdd = (await db.query.users.findFirst({
-      where: (requests) => eq(requests.email, emailToAdd),
-      columns: {
-        id: true,
-      }
-    }));
-   
-    if (!userToAdd) {
-      return new Response('The requested user does not exist!', {
-        status: 400
-      });
-    }
-
     const session = await getServerSession(authOptions);
     if (!session) {
       return new Response('Unauthorized', {
         status: 401
       })
     }
+
+     const userToAdd = await db.query.users.findFirst({
+				where: (requests) => eq(requests.email, emailToAdd),
+				columns: {
+					id: true,
+				},
+			});
+
+			if (!userToAdd) {
+				return new Response('The requested user does not exist!', {
+					status: 400,
+				});
+			}
+
 
     if (userToAdd.id === session.user.id) {
       return new Response('You cannot add yourself as a friend!');
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
 		});
 
     if (isAlreadyAdded) {
-      return new Response('Already added this user!', {
+      return new Response('Already sent request to this user!', {
         status: 400
       })
     }
@@ -85,7 +85,6 @@ export async function POST(req: Request) {
     // valid friend request here
 
     const dbFriendRequest = await db.insert(friendRequests).values({
-      id: uuidv4(),
       fromUserId: session.user.id,
       toUserId: userToAdd.id,
       status: friendRequestStatus.enumValues[0],

@@ -2,9 +2,8 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
-import { and, eq, or } from "drizzle-orm";
-import { chatRooms, friendRequestStatus, friendRequests } from "@/db/schema";
-import { v4 as uuidv4 } from "uuid";
+import { and, eq } from "drizzle-orm";
+import { chatRooms  } from "@/db/schema";
 import { addMembersToChatRoom, generateChatRoomUrl } from "@/helpers/query/chatRoom";
 import {
 	createRoomValidator,
@@ -22,7 +21,7 @@ export async function POST(req: Request) {
 			return new Response('Unauthorized', { status: 401 });
 		}
 
-		const id = uuidv4();
+		let id: string | null = null;
 		// url exists
 		if (url) {
 			const doesUrlExist = await db.query.chatRooms.findFirst({
@@ -37,22 +36,24 @@ export async function POST(req: Request) {
 			}
 
 			// create a chat room
-			await db.insert(chatRooms).values({
-				id,
+			const chatRoomIdRaw = await db.insert(chatRooms).values({
 				creatorId: session.user.id,
 				name: name,
 				url: url,
-			});
+			}).returning({id: chatRooms.id});
+			id = chatRoomIdRaw[0].id;
 		}
 		else {
 			const url = generateChatRoomUrl(name);
 			// create a chat room
-			await db.insert(chatRooms).values({
-				id,
+			const chatRoomIdRaw = await db.insert(chatRooms).values({
 				creatorId: session.user.id,
 				name: name,
 				url: url,
+			}).returning({
+				id: chatRooms.id,
 			});
+			id = chatRoomIdRaw[0].id;
 		}
 
 		// add the user to the chat room

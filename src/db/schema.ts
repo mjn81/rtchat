@@ -5,9 +5,9 @@ import {
   varchar,
   integer,
   pgEnum,
+  uuid,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "@auth/core/adapters";
-import { sql } from "drizzle-orm";
 
 export const users = pgTable("user", {
   id: text("id").notNull().primaryKey(),
@@ -67,9 +67,9 @@ export const messageType = pgEnum('message_type', [
 ]);
 
 export const messages = pgTable('message', {
-	id: text('id').notNull().primaryKey(),
+	id: uuid('id').defaultRandom().notNull().primaryKey(),
 	text: text('text').notNull(),
-	chatRoomId: text('chatRoomId').notNull().references(() => chatRooms.id, { onDelete: 'cascade' }),
+	chatRoomId: uuid('chatRoomId').defaultRandom().notNull().references(() => chatRooms.id, { onDelete: 'cascade' }),
 	type: messageType('type').notNull().default('TEXT'),
 	sender: text('sender')
 		.notNull()
@@ -81,7 +81,7 @@ export const messages = pgTable('message', {
 export type Message = typeof messages.$inferSelect; 
 
 export const chatRooms = pgTable('chatRoom', {
-	id: text('id').notNull().primaryKey(),
+	id: uuid('id').defaultRandom().notNull().primaryKey(),
 	name: text('name').notNull(),
 	url: text('url').notNull().unique(),
 	creatorId: text('creatorId')
@@ -96,7 +96,7 @@ export type ChatRoom = typeof chatRooms.$inferSelect;
 export const chatRoomMembers = pgTable(
 	'chatRoomMember',
 	{
-		chatRoomId: text('chatRoomId')
+		chatRoomId: uuid('chatRoomId')
 			.notNull()
 			.references(() => chatRooms.id, { onDelete: 'cascade' }),
 		userId: text('userId')
@@ -118,12 +118,18 @@ export const friendRequestStatus = pgEnum('friend_request_status', [
 ]);
 
 export const friendRequests = pgTable('friendRequest', {
-  id: text('id').notNull().primaryKey(),
-  fromUserId: text('fromUserId').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  toUserId: text('toUserId').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  status: varchar('status').notNull().default('PENDING'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+	id: uuid('id').defaultRandom().notNull().primaryKey(),
+	fromUserId: text('fromUserId')
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	toUserId: text('toUserId')
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	status: varchar('status', { length: 20 })
+		.notNull()
+		.default(friendRequestStatus.enumValues[0]),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
 export type FriendRequest = typeof friendRequests.$inferSelect;

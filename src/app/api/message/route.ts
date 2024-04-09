@@ -1,9 +1,8 @@
-import { Message, chatRooms, messages } from "@/db/schema";
+import { messages } from "@/db/schema";
 import { authOptions } from "@/lib/auth";
 import { chatEventListener, newMessageEventListener, push } from "@/lib/utils";
 import { messageValidator } from "@/lib/validations/message";
 import { and, eq } from "drizzle-orm";
-import { v4 as uuidv4 } from "uuid";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { ExtendedMessage } from "@/types/types";
@@ -34,14 +33,12 @@ export async function POST(req: Request) {
 				status: 400,
 			});
 		}
-    const id = uuidv4();
     const message = await db
 			?.insert(messages)
 			.values({
 				chatRoomId,
 				text,
 				type,
-				id,
 				sender: session.user.id,
 			})
       .returning();

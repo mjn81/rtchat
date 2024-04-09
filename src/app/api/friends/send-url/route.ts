@@ -2,11 +2,9 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
-import { and, eq, or } from "drizzle-orm";
-import { Message, chatRooms, friendRequestStatus, friendRequests, messages } from "@/db/schema";
+import { and, eq } from "drizzle-orm";
+import {  friendRequestStatus, messages } from "@/db/schema";
 import { chatEventListener, createChatRoomForTwoFriends, push, requestFriendToJoinMessage } from "@/lib/utils";
-import { v4 as uuidv4 } from "uuid";
-import { addMembersToChatRoom, generateChatRoomUrl } from "@/helpers/query/chatRoom";
 
 
 export async function POST(req: Request) {
@@ -56,7 +54,6 @@ export async function POST(req: Request) {
 					status: 400,
 				});
 		}
-		const mid = uuidv4();
 		const baseURL = new URL(req.url).origin;
 		const absoluteURL = `${baseURL}/join/${url}`
 		const textToJoin = requestFriendToJoinMessage(absoluteURL)
@@ -67,7 +64,6 @@ export async function POST(req: Request) {
 				chatRoomId: createChatRoomForTwoFriends(session.user.id, userId),
 				sender: session.user.id,
 				text: textToJoin,
-				id: mid,
 			});
 		}
 			

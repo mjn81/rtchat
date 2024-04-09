@@ -5,7 +5,6 @@ import { z } from "zod";
 import { and, eq, or } from "drizzle-orm";
 import { chatRooms, friendRequestStatus, friendRequests } from "@/db/schema";
 import { changeFriendRequestStatusEventListener, createChatRoomForTwoFriends, newRoomEventListener, push } from "@/lib/utils";
-import { v4 as uuidv4 } from "uuid";
 import { addMembersToChatRoom } from "@/helpers/query/chatRoom";
 
 
@@ -83,17 +82,16 @@ export async function POST(req: Request) {
 		);
 
 		const name = createChatRoomForTwoFriends(idToAdd, session.user.id);
-		const id = uuidv4();
 		// create a chat room for the two friends
-		const friendsRoom = await db.insert(chatRooms).values({
-			id,
+		const friendsRoomRaw = await db.insert(chatRooms).values({
 			creatorId: session.user.id,
 			name: name,
 			url: name,
 		}).returning();
+		const friendsRoom = friendsRoomRaw[0];
 
 		// add the two friends to the chat room
-		await addMembersToChatRoom(id, [idToAdd, session.user.id]);
+		await addMembersToChatRoom(friendsRoom.id, [idToAdd, session.user.id]);
 
 		const friendInfo = await db.query.users.findFirst({
 			columns: {
