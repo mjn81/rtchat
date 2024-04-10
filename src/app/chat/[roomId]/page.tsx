@@ -1,5 +1,7 @@
 import ChatInput from '@/components/ChatInput';
 import Messages from '@/components/Messages';
+import RoomHeader from '@/components/RoomHeader';
+import { RoomInfoModal, RoomInfoModalProps } from '@/components/RoomInfoHeader';
 import { chatRoomMembers, messages, users } from '@/db/schema';
 import { authOptions } from '@/lib/auth';
 import { getFriendFromChatRoomName, isUserPrivateChat } from '@/lib/utils';
@@ -47,29 +49,12 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
     return (
 			<div className="flex flex-col flex-1 justify-between h-full max-h-[calc(100vh-2rem)]">
 				<div className="flex sm:items-center  justify-between pb-3 border-b-2 border-gray-200">
-					<div className="relative flex items-center space-x-4">
-						<div className="relative">
-							<div className="relative w-8 h-8 sm:w-12 sm:h-12">
-								<Image
-									fill
-									referrerPolicy="no-referrer"
-									src={friendDetail.image ?? ''}
-									alt={`${friendDetail.name} profile picture`}
-									className="rounded-full"
-								/>
-							</div>
-						</div>
-
-						<div className="flex flex-col leading-tight">
-							<div className="text-xl flex items-center">
-								<span className="text-gray-700 mr-3 font-semibold">
-									{friendDetail.name}
-								</span>
-							</div>
-
-							<span className="text-sm text-gray-600">{friendDetail.email}</span>
-						</div>
-					</div>
+					{/* <RoomHeader
+						isPrivate
+						roomImage={friendDetail.image ?? ''}
+						roomName={friendDetail.name ?? ''}
+						friendEmail={friendDetail.email}
+					/> */}
 				</div>
 
 				<Messages
@@ -96,33 +81,19 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
   return (
 		<div className="flex flex-col flex-1 justify-between h-full max-h-[calc(100vh-2rem)]">
 			<div className="flex sm:items-center  justify-between pb-3 border-b-2 border-gray-200">
-				<div className="relative flex items-center space-x-4">
-					<div className="relative">
-						<div className="relative w-8 h-8 sm:w-12 sm:h-12">
-							<Image
-								fill
-								referrerPolicy="no-referrer"
-								src={''}
-								alt={`${chatRoomDetails.name} profile picture`}
-								className="rounded-full"
-							/>
-						</div>
-					</div>
-
-					<div className="flex flex-col leading-tight">
-						<div className="text-xl flex items-center">
-							<span className="text-gray-700 mr-3 font-semibold">
-								{chatRoomDetails.name}
-							</span>
-						</div>
-
-						<span className="text-sm text-gray-600">
-							{!!members && members.length > 1
-								? `${members.length} members`
-								: `1 member`}
-						</span>
-					</div>
-				</div>
+				<RoomHeader
+					roomImage=""
+					roomName={chatRoomDetails.name}
+					membersCount={members?.length}
+					Modal={RoomInfoModal}
+					modalProps={
+						{
+							roomDetail: chatRoomDetails,
+							members: userInfoMembers,
+							sessionId: session.user.id,
+						} satisfies RoomInfoModalProps
+					}
+				/>
 			</div>
 
 			<Messages

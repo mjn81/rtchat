@@ -48,3 +48,5 @@ export const getCurrentChatId = (currentPath: string | undefined | null) => {
 	}
 	return currentPath.split('/').pop() as string;
 }
+
+export const createJoinRoomURL = (uri: string) => `join_r$:${uri}`
