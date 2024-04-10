@@ -2,7 +2,7 @@ import ChatInput from '@/components/ChatInput';
 import Messages from '@/components/Messages';
 import RoomHeader from '@/components/RoomHeader';
 import { RoomInfoModal, RoomInfoModalProps } from '@/components/RoomInfoHeader';
-import { chatRoomMembers, messages, users } from '@/db/schema';
+import { chatRoomMemberStatus, chatRoomMembers, messages, users } from '@/db/schema';
 import { authOptions } from '@/lib/auth';
 import { getFriendFromChatRoomName, isUserPrivateChat } from '@/lib/utils';
 import { and, desc, eq } from 'drizzle-orm';
@@ -25,12 +25,13 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
 	if (!session) notFound()
 	if (!chatRoomDetails) redirect('/chat');
   const isMember = await db?.query.chatRoomMembers.findFirst({
-    where: (member) =>
-      and(
-        eq(member.chatRoomId, roomId),
-        eq(member.userId, session.user.id)
-      ),
-  });
+		where: (member) =>
+			and(
+				eq(member.chatRoomId, roomId),
+				eq(member.userId, session.user.id),
+				eq(member.status, chatRoomMemberStatus.enumValues[0])
+			),
+	});
   if (!isMember) notFound()
   
   const initialMessages = await db?.query.messages.findMany({
@@ -72,24 +73,37 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
 	const members = await db
 		?.select({
 			user: users,
+			chatRoomMember: {
+				status: chatRoomMembers.status,
+			}
 		})
 		.from(chatRoomMembers)
 		.where(eq(chatRoomMembers.chatRoomId, roomId))
 		.innerJoin(users, eq(chatRoomMembers.userId, users.id));
-	const userInfoMembers = members?.map(member => member.user)
-		?? [];
+	
+	const joinedMembers: User[] = [];
+	// including users that left chat
+	const allMembersInfoMembers: User[] = [];
+	
+	for (const {chatRoomMember, user} of members ?? []) {
+		if (chatRoomMember.status === chatRoomMemberStatus.enumValues[0]) {
+			joinedMembers.push(user);
+		}
+		allMembersInfoMembers.push(user);
+	}
+		
   return (
 		<div className="flex flex-col flex-1 justify-between h-full max-h-[calc(100vh-2rem)]">
 			<div className="flex sm:items-center  justify-between pb-3 border-b-2 border-gray-200">
 				<RoomHeader
 					roomImage=""
 					roomName={chatRoomDetails.name}
-					membersCount={members?.length}
+					membersCount={joinedMembers.length}
 					Modal={RoomInfoModal}
 					modalProps={
 						{
 							roomDetail: chatRoomDetails,
-							members: userInfoMembers,
+							members: joinedMembers,
 							sessionId: session.user.id,
 						} satisfies RoomInfoModalProps
 					}
@@ -99,7 +113,7 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
 			<Messages
 				chatId={roomId}
 				sessionImg={session.user.image}
-				chatPartners={userInfoMembers}
+				chatPartners={allMembersInfoMembers}
 				sessionId={session.user.id}
 				initialMessages={initialMessages ?? []}
 			/>

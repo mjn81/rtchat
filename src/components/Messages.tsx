@@ -81,11 +81,7 @@ const Messages: FC<MessagesProps> = ({chatId,initialMessages, sessionId, chatPar
 									<span className="block leading-tight text-gray-400 text-[0.6rem]">
 										{formatTimestamp(message.updatedAt)}
 									</span>
-									<div
-										dangerouslySetInnerHTML={{
-											__html: message.text,
-										}}
-									></div>
+									{message.text}
 								</span>
 							</div>
 							<div

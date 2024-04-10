@@ -76,7 +76,7 @@ export async function POST(req: Request) {
 
 
 // admin removes room
-export async function Delete(req: Request) {
+export async function DELETE(req: Request) {
   try {
 		const body = await req.json();
 		const { id: idToRemove } = z.object({ id: z.string() }).parse(body);

@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { z } from 'zod';
 import { and, eq, or } from 'drizzle-orm';
 import { addMembersToChatRoom } from '@/helpers/query/chatRoom';
+import { chatRoomMemberStatus, chatRoomMembers } from '@/db/schema';
 
 export async function GET(
 	req: Request,
@@ -32,14 +33,33 @@ export async function GET(
 			where: (room) => and(eq(room.userId, session.user.id),eq(room.chatRoomId, doesRoomExist.id))
 		})
 
-		if (alreadyMember) {
-			return new Response('Already Member of this room', {
-				status: 400,
-			});
+		if (
+			!!alreadyMember
+		) {
+			if ( alreadyMember.status === chatRoomMemberStatus.enumValues[0]) {
+				return new Response('Already Member of this room', {
+					status: 400,
+				});
+			}
+
+			if (alreadyMember.status === chatRoomMemberStatus.enumValues[1]) {
+				await db
+					.update(chatRoomMembers)
+					.set({
+						status: chatRoomMemberStatus.enumValues[0],
+					})
+					.where(
+						and(
+							eq(chatRoomMembers.userId, session.user.id),
+							eq(chatRoomMembers.chatRoomId, doesRoomExist.id)
+						)
+					);
+			}
+		} else {
+			// add user to the chat room
+			await addMembersToChatRoom(doesRoomExist.id, [session.user.id]);
 		}
 
-		// add user to the chat room
-		await addMembersToChatRoom(doesRoomExist.id, [session.user.id]);
 
 		return new Response('OK');
 	} catch (error) {

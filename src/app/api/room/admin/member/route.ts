@@ -3,16 +3,16 @@ import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { and, eq } from "drizzle-orm";
-import { chatRoomMembers, chatRooms } from "@/db/schema";
+import { chatRoomMemberStatus, chatRoomMembers, chatRooms } from "@/db/schema";
+import { removeUserValidator } from "@/lib/validations/room";
 
 
 // admin removes member
-export async function Delete(req: Request) {
-  try {
+export async function DELETE(req: Request) {
+	try {
+		console.log('delete member')
 		const body = await req.json();
-		const { id: idToRemove, memberId } = z
-			.object({ id: z.string(), memberId: z.string() })
-			.parse(body);
+		const { id: idToRemove, memberId } = removeUserValidator.parse(body);
 
 		const session = await getServerSession(authOptions);
 		if (!session) {
@@ -53,7 +53,10 @@ export async function Delete(req: Request) {
 		}
 		
 		await db
-			.delete(chatRoomMembers)
+			.update(chatRoomMembers)
+			.set({
+				status: chatRoomMemberStatus.enumValues[1]
+			})
 			.where(
 				and(
 					eq(chatRoomMembers.userId, memberId),

@@ -1,4 +1,4 @@
-import { messages } from "@/db/schema";
+import { chatRoomMemberStatus, messages } from "@/db/schema";
 import { authOptions } from "@/lib/auth";
 import { chatEventListener, newMessageEventListener, push } from "@/lib/utils";
 import { messageValidator } from "@/lib/validations/message";
@@ -48,12 +48,16 @@ export async function POST(req: Request) {
     }
     // realtime messaging
 		await push(message[0], chatEventListener(chatRoomId));
-		const chatRoomMembers = await db?.query.chatRoomMembers.findMany({
+		const chatRoomMembers = (await db?.query.chatRoomMembers.findMany({
 			columns: {
 				userId: true,
 			},
-			where: (members) => eq(members.chatRoomId, chatRoomId),
-		}) as { userId: string }[];
+			where: (members) =>
+				and(
+					eq(members.chatRoomId, chatRoomId),
+					eq(members.status, chatRoomMemberStatus.enumValues[0])
+				),
+		})) as { userId: string }[];
 
 		const notifMessage: ExtendedMessage = {
 			message: message[0],
@@ -81,8 +85,8 @@ export async function POST(req: Request) {
 }
 
 
-// admin removes room
-export async function Delete(req: Request) {
+// delete message
+export async function DELETE(req: Request) {
   try {
 		const body = await req.json();
 		const { id: idToRemove } = z.object({ id: z.string() }).parse(body);

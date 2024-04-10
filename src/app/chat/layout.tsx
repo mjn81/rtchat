@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import SidebarChatList from '@/components/SidebarChatList';
-import { ChatRoom, chatRoomMembers, chatRooms, friendRequestStatus, friendRequests } from '@/db/schema';
+import { ChatRoom, chatRoomMemberStatus, chatRoomMembers, chatRooms, friendRequestStatus, friendRequests } from '@/db/schema';
 import { and, count, eq } from 'drizzle-orm';
 import { LucideIcon, UserPlus, ListPlus} from 'lucide-react';
 import SignOutButton from '@/components/signOutButton';
@@ -30,11 +30,11 @@ const sideBarOptions: SideBarOption[] = [
 const Layout: FC<LayoutProps> = async ({ children }) => {
 	const session = await getServerSession(authOptions);
 	if (!session) notFound();
-  // make the query remove duplicate
+  // query remove duplicate
   const chats = await db
-		?.selectDistinct({chatRoom: chatRooms})
+		?.selectDistinct({ chatRoom: chatRooms })
 		.from(chatRoomMembers)
-		.where(eq(chatRoomMembers.userId, session.user.id))
+		.where(and(eq(chatRoomMembers.userId, session.user.id), eq(chatRoomMembers.status, chatRoomMemberStatus.enumValues[0])))
 		.innerJoin(chatRooms, eq(chatRooms.id, chatRoomMembers.chatRoomId));
 	
 	const processesChats = await Promise.all(

@@ -2,15 +2,16 @@
 import { useState, type FC } from 'react';
 import { type BaseModalProps, Modal } from './ui/Modal';
 import Image from 'next/image';
-import { Copy, RefreshCw,  X } from 'lucide-react';
+import { Copy, Eye, EyeOff, RefreshCw,  X } from 'lucide-react';
 import { ChatRoom } from '@/db/schema';
 import { format } from 'date-fns';
-import { cn, createJoinRoomURL } from '@/lib/utils';
+import { cn, createJoinRoomURL, createProtectedText } from '@/lib/utils';
 import axios, { AxiosError } from 'axios';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
-import { updateRoomValidator } from '@/lib/validations/room';
+import { removeUserValidator, updateRoomValidator } from '@/lib/validations/room';
 import { z } from 'zod';
+import { Button } from './ui/Button';
 
 export interface RoomInfoModalProps {
 	roomDetail: ChatRoom;
@@ -26,7 +27,8 @@ export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId
 	const [isChanged, setIsChanged] = useState<boolean>(false);
 	const [error, setError] = useState<string>('');
 	const [name, setName] = useState<string>(roomDetail.name);
-
+	const [isHidden, setIsHidden] = useState<boolean>(true);
+	const roomUrl = createJoinRoomURL(roomDetail.url);
 	const onUpdateRoomInfo = async () => {
 		setIsLoading(true);
 		try {
@@ -34,7 +36,7 @@ export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId
 				return;
 			}
 			const validatedBody = updateRoomValidator.parse({ name, id: roomDetail.id });
-			axios.put('/api/room', validatedBody);
+			await axios.put('/api/room', validatedBody);
 			toast.success('Room info updated successfully');
 			setIsOpen(false);
 			setError('');
@@ -57,6 +59,69 @@ export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId
 			setIsLoading(false);
 		}
 	} 
+
+	const onRemoveUser = async (userId: string) => {
+		if (!userId) return;
+		setIsLoading(true);
+		try {
+			const validatedBody = removeUserValidator.parse({ id: roomDetail.id, memberId: userId });
+			await axios.delete('/api/room/admin/member', {
+				data: validatedBody,
+			});
+			toast.success('User removed successfully');
+			setIsOpen(false);
+		} catch (error) {
+			if (error instanceof z.ZodError) {
+				toast.error(error.errors[0].message);
+				return;
+			}
+			if (error instanceof AxiosError) {
+				toast.error(error.response?.data);
+				return;
+			}
+			toast.error('Something went wrong');
+		} finally {
+			setIsLoading(false);
+		}
+	}
+
+	const onLeaveRoom = async () => {
+		setIsLoading(true);
+		try {
+			await axios.delete('/api/room/leave', {
+				data: { id: roomDetail.id },
+			});
+			toast.success('Room left successfully');
+			setIsOpen(false);
+		} catch (error) {
+			if (error instanceof AxiosError) {
+				toast.error(error.response?.data);
+				return;
+			}
+			toast.error('Something went wrong');
+		} finally {
+			setIsLoading(false);
+		}
+	}
+
+	const onDeleteRoom = async () => {	
+		setIsLoading(true);
+		try {
+			await axios.delete('/api/room/', {
+				data: { id: roomDetail.id },
+			});
+			toast.success('Room deleted successfully');
+			setIsOpen(false);
+		} catch (error) {
+			if (error instanceof AxiosError) {
+				toast.error(error.response?.data);
+				return;
+			}
+			toast.error('Something went wrong');
+		} finally {
+			setIsLoading(false);
+		}
+	}
 	const isAdmin = roomDetail.creatorId === sessionId;
 	return (
 		<Modal isOpen={isOpen} setIsOpen={setIsOpen}>
@@ -67,7 +132,7 @@ export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId
 				>
 					<X className="text-gray-900" />
 				</button>
-				<div className="relative border-b py-2 border-gray-300 flex items-center gap-3">
+				<div className="relative border-b pb-2 border-gray-300 flex items-center gap-3">
 					<div className="relative overflow-hidden w-8 h-8 sm:w-12 sm:h-12">
 						<Image
 							fill
@@ -133,22 +198,40 @@ export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId
 							{/* URL */}
 							{isAdmin && (
 								<tr>
-									<td className="py-2 font-semibold text-sm text-gray-800">
+									<td className="pb-2 font-semibold text-sm text-gray-800">
 										URL
 									</td>
 									<td
-										className="py-2 font-semibold flex items-center justify-between gap-3 text-sm text-gray-600 hover:text-indigo-600"
-										onClick={() => {
-											navigator.clipboard.writeText(
-												createJoinRoomURL(roomDetail.url)
-											);
-											toast.success('Link copied to clipboard');
-										}}
+										className={cn(
+											'flex justify-between cursor-pointer pb-2 font-semibold text-gray-600 text-xs',
+											{
+												'tracking-widest': isHidden,
+											}
+										)}
 									>
-										{createJoinRoomURL(roomDetail.url)}
-										<button type="button">
-											<Copy />
-										</button>
+										<span className="overflow-hidden">
+											{isHidden
+												? createProtectedText(roomDetail.url)
+												: roomDetail.url}
+										</span>
+										<span className="space-x-3">
+											<button
+												onClick={() => setIsHidden((pre) => !pre)}
+												className="hover:text-orange-500"
+											>
+												{isHidden ? <Eye size={18} /> : <EyeOff size={18} />}
+											</button>
+											<button
+												className=" hover:text-indigo-600"
+												onClick={() => {
+													navigator.clipboard.writeText(roomUrl);
+													toast.success('Link copied to clipboard');
+												}}
+												type="button"
+											>
+												<Copy size={18} />
+											</button>
+										</span>
 									</td>
 								</tr>
 							)}
@@ -166,10 +249,10 @@ export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId
 							)}
 							{/* Creation Date */}
 							<tr>
-								<td className="py-2 font-semibold text-sm text-gray-800">
+								<td className="pt-3 font-semibold text-sm text-gray-800">
 									Creation Date
 								</td>
-								<td className="py-2 font-semibold text-sm text-gray-600">
+								<td className="pt-3 font-semibold text-sm text-gray-600">
 									{formatTimestamp(roomDetail.createdAt)}
 								</td>
 							</tr>
@@ -197,13 +280,35 @@ export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId
 								) : null}
 
 								{isAdmin && member.id !== roomDetail.creatorId ? (
-									<button className="text-sm text-rose-700 hover:underline">
-										remove{' '}
+									<button
+										onClick={onRemoveUser.bind(null, member.id ?? '')}
+										className="text-sm text-rose-700 hover:underline"
+									>
+										remove
 									</button>
 								) : null}
 							</li>
 						))}
 					</ul>
+				</div>
+
+				<div className="flex items-center justify-center gap-2">
+					<Button
+						onClick={onLeaveRoom}
+						className={cn('mt-4 w-full ', {
+							'bg-rose-600 hover:bg-rose-800': !isAdmin,
+						})}
+					>
+						Leave Room
+					</Button>
+					{isAdmin && (
+						<Button
+							onClick={onDeleteRoom}
+							className="mt-4 w-full bg-rose-600 hover:bg-rose-800"
+						>
+							Delete Room
+						</Button>
+					)}
 				</div>
 			</div>
 		</Modal>

@@ -9,3 +9,8 @@ export const updateRoomValidator = z.object({
   id: z.string(),
   name: z.string().min(5),
 });
+
+export const removeUserValidator = z.object({
+  id: z.string().min(2),
+  memberId: z.string().min(2),
+});

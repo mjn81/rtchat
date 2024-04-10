@@ -93,6 +93,11 @@ export const chatRooms = pgTable('chatRoom', {
 
 export type ChatRoom = typeof chatRooms.$inferSelect;
 
+export const chatRoomMemberStatus = pgEnum('chat_room_member_status', [
+  'ACTIVE',
+  'LEFT',
+]);
+
 export const chatRoomMembers = pgTable(
 	'chatRoomMember',
 	{
@@ -102,7 +107,8 @@ export const chatRoomMembers = pgTable(
 		userId: text('userId')
 			.notNull()
 			.references(() => users.id, { onDelete: 'cascade' }),
-		joinedAt: timestamp('joined_at').notNull().defaultNow(),
+    joinedAt: timestamp('joined_at').notNull().defaultNow(),
+    status: varchar('status', { length: 20 }).notNull().default(chatRoomMemberStatus.enumValues[0]),
 	},
 	(vt) => ({
 		primaryKey: [vt.chatRoomId, vt.userId],

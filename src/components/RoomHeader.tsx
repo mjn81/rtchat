@@ -16,7 +16,6 @@ interface RoomHeaderProps extends PropsWithChildren {
 
 const RoomHeader: FC<RoomHeaderProps> = ({ roomImage,Modal,modalProps, roomName, membersCount, friendEmail, children, isPrivate=false}) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-	
   return (
 		<>
 			<div onClick={() => {

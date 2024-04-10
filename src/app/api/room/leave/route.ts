@@ -3,11 +3,11 @@ import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { and, eq } from "drizzle-orm";
-import { chatRoomMembers, chatRooms } from "@/db/schema";
+import { chatRoomMemberStatus, chatRoomMembers, chatRooms } from "@/db/schema";
 
 
 // member leaves
-export async function Delete(req: Request) {
+export async function DELETE(req: Request) {
   try {
 		const body = await req.json();
 		const { id: idToRemove } = z.object({ id: z.string() }).parse(body);
@@ -50,7 +50,9 @@ export async function Delete(req: Request) {
 		}
 		
 		await db
-			.delete(chatRoomMembers)
+			.update(chatRoomMembers).set({
+				status: chatRoomMemberStatus.enumValues[1]
+			})
 			.where(
 				and(
 					eq(chatRoomMembers.userId, session.user.id),
