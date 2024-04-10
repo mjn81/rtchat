@@ -314,5 +314,190 @@ export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId
 		</Modal>
 	);
 }
+export interface FriendRoomInfoModalProps {
+	sessionId: string;
+	friend: User;
+}
 
+export const FriendRoomInfoModal: FC<BaseModalProps<FriendRoomInfoModalProps>> = ({
+	sessionId,
+	friend,
+	setIsOpen,
+	isOpen,
+}) => {
+	//const [isLoading, setIsLoading] = useState<boolean>(false);
+	//const [isChanged, setIsChanged] = useState<boolean>(false);
+	//const [error, setError] = useState<string>('');
+	//const [isHidden, setIsHidden] = useState<boolean>(true);
+	//const roomUrl = createJoinRoomURL(roomDetail.url);
+	//const onUpdateRoomInfo = async () => {
+	//setIsLoading(true);
+	/**
+		 
+		 try {
+			if (!isChanged) {
+				return;
+			}
+			const validatedBody = updateRoomValidator.parse({
+				name,
+				id: roomDetail.id,
+			});
+			await axios.put('/api/room', validatedBody);
+			toast.success('Room info updated successfully');
+			setIsOpen(false);
+			setError('');
+			setIsChanged(false);
+		} catch (error) {
+			if (error instanceof z.ZodError) {
+				setError(error.errors[0].message);
+				return;
+			}
 
+			if (error instanceof AxiosError) {
+				toast.error(error.response?.data);
+				return;
+			}
+
+			toast.error('Something went wrong');
+		} finally {
+			setIsLoading(false);
+		}
+	};
+		 */
+
+	/** const onRemoveUser = async (userId: string) => {
+		if (!userId) return;
+		setIsLoading(true);
+		try {
+			const validatedBody = removeUserValidator.parse({
+				id: roomDetail.id,
+				memberId: userId,
+			});
+			await axios.delete('/api/room/admin/member', {
+				data: validatedBody,
+			});
+			toast.success('User removed successfully');
+			setIsOpen(false);
+		} catch (error) {
+			if (error instanceof z.ZodError) {
+				toast.error(error.errors[0].message);
+				return;
+			}
+			if (error instanceof AxiosError) {
+				toast.error(error.response?.data);
+				return;
+			}
+			toast.error('Something went wrong');
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	const onLeaveRoom = async () => {
+		setIsLoading(true);
+		try {
+			await axios.delete('/api/room/leave', {
+				data: { id: roomDetail.id },
+			});
+			toast.success('Room left successfully');
+			setIsOpen(false);
+		} catch (error) {
+			if (error instanceof AxiosError) {
+				toast.error(error.response?.data);
+				return;
+			}
+			toast.error('Something went wrong');
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	const onDeleteRoom = async () => {
+		setIsLoading(true);
+		try {
+			await axios.delete('/api/room/', {
+				data: { id: roomDetail.id },
+			});
+			toast.success('Room deleted successfully');
+			setIsOpen(false);
+		} catch (error) {
+			if (error instanceof AxiosError) {
+				toast.error(error.response?.data);
+				return;
+			}
+			toast.error('Something went wrong');
+		} finally {
+			setIsLoading(false);
+		}
+	};
+	const isAdmin = roomDetail.creatorId === sessionId;*/
+	return (
+		<Modal isOpen={isOpen} setIsOpen={setIsOpen}>
+			<div className="shadow-md animate-go-down max-w-lg w-full m-3 relative bg-white p-4 rounded-md space-y-3">
+				<button
+					onClick={() => setIsOpen(false)}
+					className="absolute top-1.5 right-1.5 w-9 h-9 aspect-square rounded-full flex justify-center items-center"
+				>
+					<X className="text-gray-900" />
+				</button>
+				<div className="relative border-b pb-2 border-gray-300 flex items-center gap-3">
+					<div className="relative overflow-hidden w-8 h-8 sm:w-12 sm:h-12">
+						<Image
+							fill
+							referrerPolicy="no-referrer"
+							src={friend.image ?? ''}
+							alt={`${friend.name} room profile picture`}
+							className="rounded-full"
+						/>
+					</div>
+					<div className="flex-grow text-gray-700 text-xl mr-3 p-0 font-semibold">
+						{friend.name}
+					</div>
+				</div>
+
+				<div className="overflow-x-auto">
+					<table className="min-w-full">
+						<tbody>
+							{/* Room Info */}
+							<tr>
+								<td colSpan={2}>
+									<h4 className="text-md text-gray-900 font-semibold">
+										Friend Info
+									</h4>
+								</td>
+							</tr>
+							{/* Members */}
+							<tr>
+								<td className="py-2 font-semibold text-sm text-gray-800">
+									E-Mail
+								</td>
+								<td className="py-2 font-semibold text-sm text-gray-600">
+									{friend.email}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				{/** <div className="flex items-center justify-center gap-2">
+					<Button
+						onClick={onLeaveRoom}
+						className={cn('mt-4 w-full ', {
+							'bg-rose-600 hover:bg-rose-800': !isAdmin,
+						})}
+					>
+						Leave Room
+					</Button>
+					{isAdmin && (
+						<Button
+							onClick={onDeleteRoom}
+							className="mt-4 w-full bg-rose-600 hover:bg-rose-800"
+						>
+							Delete Room
+						</Button>
+					)}
+				</div> */}
+			</div>
+		</Modal>
+	);
+};

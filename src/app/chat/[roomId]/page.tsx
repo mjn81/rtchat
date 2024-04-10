@@ -1,7 +1,7 @@
 import ChatInput from '@/components/ChatInput';
 import Messages from '@/components/Messages';
 import RoomHeader from '@/components/RoomHeader';
-import { RoomInfoModal, RoomInfoModalProps } from '@/components/RoomInfoHeader';
+import { FriendRoomInfoModal, FriendRoomInfoModalProps, RoomInfoModal, RoomInfoModalProps } from '@/components/RoomInfoHeader';
 import { chatRoomMemberStatus, chatRoomMembers, messages, users } from '@/db/schema';
 import { authOptions } from '@/lib/auth';
 import { getFriendFromChatRoomName, isUserPrivateChat } from '@/lib/utils';
@@ -50,12 +50,19 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
     return (
 			<div className="flex flex-col flex-1 justify-between h-full max-h-[calc(100vh-2rem)]">
 				<div className="flex sm:items-center  justify-between pb-3 border-b-2 border-gray-200">
-					{/* <RoomHeader
+					<RoomHeader
 						isPrivate
 						roomImage={friendDetail.image ?? ''}
 						roomName={friendDetail.name ?? ''}
 						friendEmail={friendDetail.email}
-					/> */}
+						Modal={FriendRoomInfoModal}
+						modalProps={
+							{
+								friend: friendDetail,
+								sessionId: session.user.id,
+							} satisfies FriendRoomInfoModalProps
+						}
+					/>
 				</div>
 
 				<Messages
