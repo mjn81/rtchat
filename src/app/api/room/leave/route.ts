@@ -4,8 +4,9 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { and, eq } from "drizzle-orm";
 import { chatRoomMemberStatus, chatRoomMembers, chatRooms } from "@/db/schema";
+import { leaveRoomEventListener, push } from "@/lib/utils";
 
-
+// realtime complete
 // member leaves
 export async function DELETE(req: Request) {
   try {
@@ -58,7 +59,9 @@ export async function DELETE(req: Request) {
 					eq(chatRoomMembers.userId, session.user.id),
 					eq(chatRoomMembers.chatRoomId, idToRemove)
 				)
-			);
+		);
+		
+		await push(session.user,leaveRoomEventListener(idToRemove));
 
 		return new Response('OK');
 	} catch (error) {

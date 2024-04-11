@@ -7,6 +7,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { ExtendedMessage } from "@/types/types";
 
+// realtime complete
 export async function POST(req: Request) {
   try {
 		const body = await req.json();
@@ -84,7 +85,7 @@ export async function POST(req: Request) {
 	}
 }
 
-
+// not implemented
 // delete message
 export async function DELETE(req: Request) {
   try {

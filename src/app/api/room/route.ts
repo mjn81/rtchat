@@ -9,7 +9,9 @@ import {
 	createRoomValidator,
 	updateRoomValidator,
 } from '@/lib/validations/room';
+import { deleteRoomEventListener, push, updateRoomEventListener } from "@/lib/utils";
 
+// no realtime needed
 // create room
 export async function POST(req: Request) {
   try {
@@ -58,7 +60,6 @@ export async function POST(req: Request) {
 
 		// add the user to the chat room
 		await addMembersToChatRoom(id, [session.user.id]);
-
 		return new Response('OK');
 	} catch (error) {
     if (error instanceof z.ZodError) {
@@ -74,7 +75,7 @@ export async function POST(req: Request) {
   }
 }
 
-
+// realtime complete
 // admin removes room
 export async function DELETE(req: Request) {
   try {
@@ -107,6 +108,8 @@ export async function DELETE(req: Request) {
 		
 		await db.delete(chatRooms).where(eq(chatRooms.id, idToRemove));
 
+		await push('DONE!',deleteRoomEventListener(idToRemove))
+
 		return new Response('OK');
 	} catch (error) {
     if (error instanceof z.ZodError) {
@@ -121,7 +124,7 @@ export async function DELETE(req: Request) {
 
   }
 }
-
+// realtime complete
 // update room
 export async function PUT(req: Request) {
 	try {
@@ -158,6 +161,9 @@ export async function PUT(req: Request) {
 			})
 			.where(eq(chatRooms.id, idToUpdate));
 
+		await push({
+			name,
+		},updateRoomEventListener(idToUpdate))
 		return new Response('OK');
 	} catch (error) {
 		if (error instanceof z.ZodError) {

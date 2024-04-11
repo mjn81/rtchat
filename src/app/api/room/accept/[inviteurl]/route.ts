@@ -5,7 +5,9 @@ import { z } from 'zod';
 import { and, eq, or } from 'drizzle-orm';
 import { addMembersToChatRoom } from '@/helpers/query/chatRoom';
 import { chatRoomMemberStatus, chatRoomMembers } from '@/db/schema';
+import { joinedEventListener, push } from '@/lib/utils';
 
+// realtime complete
 export async function GET(
 	req: Request,
 	{ params }: { params: { inviteurl: string } }
@@ -60,6 +62,7 @@ export async function GET(
 			await addMembersToChatRoom(doesRoomExist.id, [session.user.id]);
 		}
 
+		await push(session.user, joinedEventListener(doesRoomExist.id));
 
 		return new Response('OK');
 	} catch (error) {

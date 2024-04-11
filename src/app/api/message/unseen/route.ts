@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
 import { z } from 'zod';
 
+// no realtime needed
 export async function POST(req: Request) {
 	try {
 		const body = await req.json();
@@ -31,7 +32,8 @@ export async function POST(req: Request) {
 	}
 }
 
-// delete message
+// no realtime needed
+// delete unseen
 export async function DELETE(req: Request) {
 	try {
 		const body = await req.json();

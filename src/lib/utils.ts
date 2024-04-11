@@ -21,6 +21,16 @@ export const newRoomEventListener = (userId: string) => `newRoom:${userId}`;
 
 export const newMessageEventListener = (userId: string) => `newMessage:${userId}`; 
 
+export const leaveRoomEventListener = (chatId: string) => `leaveRoom:${chatId}`;
+export const deleteRoomEventListener = (chatId: string) =>
+	`deleteRoom:${chatId}`;
+export const updateRoomEventListener = (chatId: string) =>
+	`updateRoomInfo:${chatId}`;
+
+export const deleteUserEventListener = (chatId: string) => `deleteUser:${chatId}`;
+
+export const joinedEventListener = (chatId: string) => `joined:${chatId}`;
+
 export const createChatRoomForTwoFriends = (friendId1: string, friendId2: string) =>
 	[friendId1, friendId2].sort().join('$');
 

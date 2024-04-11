@@ -5,12 +5,12 @@ import { z } from "zod";
 import { and, eq } from "drizzle-orm";
 import { chatRoomMemberStatus, chatRoomMembers, chatRooms } from "@/db/schema";
 import { removeUserValidator } from "@/lib/validations/room";
+import { deleteUserEventListener, push } from "@/lib/utils";
 
-
+// realtime complete
 // admin removes member
 export async function DELETE(req: Request) {
 	try {
-		console.log('delete member')
 		const body = await req.json();
 		const { id: idToRemove, memberId } = removeUserValidator.parse(body);
 
@@ -20,7 +20,7 @@ export async function DELETE(req: Request) {
 		}
 
 		// get room
-		const toMemberRemoveRoom = await db.query.chatRooms.findFirst({
+		const roomToRemoveMember = await db.query.chatRooms.findFirst({
 			columns: {
 				id: true,
 				creatorId: true,
@@ -32,13 +32,17 @@ export async function DELETE(req: Request) {
 				),
 		});
 
-		if (!toMemberRemoveRoom) {
+		if (!roomToRemoveMember) {
 			return new Response('Room does not exist', {
 				status: 400,
 			});
 		}
 
 		const isRoomJoined = await db.query.chatRoomMembers.findFirst({
+			columns: {
+				chatRoomId: true,
+				userId: true,
+			},
 			where: (requests) =>
 				and(
 					eq(requests.userId, memberId),
@@ -62,7 +66,9 @@ export async function DELETE(req: Request) {
 					eq(chatRoomMembers.userId, memberId),
 					eq(chatRoomMembers.chatRoomId, idToRemove)
 				)
-			);
+		);
+		
+		await push(memberId,deleteUserEventListener(idToRemove))
 
 		return new Response('OK');
 	} catch (error) {
