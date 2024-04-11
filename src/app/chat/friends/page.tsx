@@ -1,3 +1,4 @@
+import { db } from '@/lib/db';
 import FriendRequests from '@/components/FriendRequests';
 import { friendRequestStatus, friendRequests, users } from '@/db/schema';
 import { authOptions } from '@/lib/auth';
@@ -12,16 +13,16 @@ const Requests: FC<RequestsProps> = async () => {
 	const session = await getServerSession(authOptions);
 	if (!session) notFound();
 
-
-  const incomingFriendRequests = await db
-    ?.select()
+	const incomingFriendRequests = await db
+		?.select()
 		.from(friendRequests)
 		.where(
 			and(
 				eq(friendRequests.toUserId, session.user.id),
 				eq(friendRequests.status, friendRequestStatus.enumValues[0])
 			)
-		).innerJoin(users, eq(friendRequests.fromUserId, users.id));
+		)
+		.innerJoin(users, eq(friendRequests.fromUserId, users.id));
 
 	return (
 		<main>

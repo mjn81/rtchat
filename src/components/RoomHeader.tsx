@@ -1,22 +1,75 @@
 'use client';
+import { changeRoomUserEventListener, deleteUserEventListener, joinedEventListener, updateRoomEventListener } from '@/lib/utils';
+import { useSocketStore } from '@/store/socket';
 import Image from 'next/image';
-import React, { ReactElement, useState, type FC, type PropsWithChildren } from 'react';
-import { type BaseModalProps } from './ui/Modal';
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useState, type FC, type PropsWithChildren } from 'react';
+
 
 /// TODO: refactor modal component
 interface RoomHeaderProps extends PropsWithChildren {
-  roomName: string;
-  membersCount?: number;
+  initialRoomName: string;
+  membersCountInitial?: number;
   roomImage: string;
-  friendEmail?: string;
+	friendEmail?: string;
+	roomId?: string;
   isPrivate?: boolean;
 	Modal: React.ElementType;
 	modalProps: any;
+	sessionId: string;
 }
 
-const RoomHeader: FC<RoomHeaderProps> = ({ roomImage,Modal,modalProps, roomName, membersCount, friendEmail, children, isPrivate=false}) => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  return (
+const RoomHeader: FC<RoomHeaderProps> = ({sessionId, roomImage,Modal,modalProps,roomId, initialRoomName, membersCountInitial, friendEmail, children, isPrivate=false}) => {
+	const router = useRouter();
+	const [roomName, setRoomName] = useState(initialRoomName);
+	const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [membersCount, setMembersCount] = useState(membersCountInitial ?? 0)
+	const connect = useSocketStore((state) => state.connect);
+	const disconnect = useSocketStore((state) => state.disconnect);
+	useEffect(() => {
+		if (isPrivate || !roomId) return;
+		const socket = connect();
+		const onRemoveUserHandler = ({memberId}: DeleteUserSocketPayload) => {
+			/// refresh to remove user from  current chat
+			if (sessionId === memberId) {
+				router.refresh();
+			}
+			setMembersCount(pre => pre-1);
+		};
+
+		const onRoomInfoUpdated = ({ name }: { name: string }) => {
+			setRoomName(name);
+		}
+		const onUserJoinHandler = () => {
+			setMembersCount((pre) => pre + 1);
+		};
+
+		socket.on(deleteUserEventListener(sessionId), onRemoveUserHandler);
+		socket.on(changeRoomUserEventListener(roomId), onRemoveUserHandler);
+		socket.on(joinedEventListener(roomId), onUserJoinHandler);
+		socket.on(updateRoomEventListener(roomId), onRoomInfoUpdated);
+		
+		return () => {
+			socket.removeListener(
+				deleteUserEventListener(sessionId),
+				onRemoveUserHandler
+			);
+			socket.removeListener(
+				changeRoomUserEventListener(sessionId),
+				onRemoveUserHandler
+			);
+			socket.removeListener(
+				joinedEventListener(roomId),
+				onUserJoinHandler
+			);
+			socket.removeListener(
+				updateRoomEventListener(roomId),
+				onRoomInfoUpdated
+			);
+			disconnect();
+		};
+	});
+	return (
 		<>
 			<div onClick={() => {
 				setIsOpen(true);

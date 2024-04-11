@@ -3,8 +3,8 @@ import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { and, eq } from "drizzle-orm";
-import { chatRoomMemberStatus, chatRoomMembers, chatRooms } from "@/db/schema";
-import { leaveRoomEventListener, push } from "@/lib/utils";
+import { chatRoomMemberStatus, chatRoomMembers } from "@/db/schema";
+import { changeRoomUserEventListener, deleteUserEventListener, push } from "@/lib/utils";
 
 // realtime complete
 // member leaves
@@ -24,10 +24,7 @@ export async function DELETE(req: Request) {
 				id: true,
 				creatorId: true,
 			},
-			where: (requests) =>
-				and(
-					eq(requests.id, idToRemove),
-				),
+			where: (requests) => and(eq(requests.id, idToRemove)),
 		});
 
 		if (!toRemoveRoom) {
@@ -49,31 +46,39 @@ export async function DELETE(req: Request) {
 				status: 400,
 			});
 		}
-		
+
 		await db
-			.update(chatRoomMembers).set({
-				status: chatRoomMemberStatus.enumValues[1]
+			.update(chatRoomMembers)
+			.set({
+				status: chatRoomMemberStatus.enumValues[1],
 			})
 			.where(
 				and(
 					eq(chatRoomMembers.userId, session.user.id),
 					eq(chatRoomMembers.chatRoomId, idToRemove)
 				)
+			);
+
+		await push(
+			{ roomId: idToRemove, memberId: session.user.id },
+			deleteUserEventListener(session.user.id)
 		);
-		
-		await push(session.user,leaveRoomEventListener(idToRemove));
+
+		await push(
+			{ roomId: idToRemove, memberId: session.user.id },
+			changeRoomUserEventListener(idToRemove)
+		);
 
 		return new Response('OK');
 	} catch (error) {
-    if (error instanceof z.ZodError) {
-      return new Response('Invalid request payload.', {
-        status: 422
-      })
-    }
+		if (error instanceof z.ZodError) {
+			return new Response('Invalid request payload.', {
+				status: 422,
+			});
+		}
 
-    return new Response('Invalid request.', {
-      status: 400
-    })
-
-  }
+		return new Response('Invalid request.', {
+			status: 400,
+		});
+	}
 }

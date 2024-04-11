@@ -1,6 +1,6 @@
 'use client';
-import { ChatRoom, Message } from '@/db/schema';
-import { getCurrentChatId, newMessageEventListener, newRoomEventListener } from '@/lib/utils';
+import { ChatRoom } from '@/db/schema';
+import { deleteUserEventListener, getCurrentChatId, newMessageEventListener, newRoomEventListener } from '@/lib/utils';
 import { useSocketStore } from '@/store/socket';
 import { ExtendedMessage } from '@/types/types';
 import Link from 'next/link';
@@ -47,10 +47,9 @@ const SidebarChatList: FC<SidebarChatListProps> = ({ initialChats, sessionId, in
 	}, [pathname]);
 	useEffect(() => {
 		const socket = connect();
-		const newMessageHandler = async (data: ExtendedMessage) => {
+		const newMessageHandler = (data: ExtendedMessage) => {
 			// notification logic
 			const shouldNotify = data.message.chatRoomId !== currentChatId;
-			console.log('sg', shouldNotify, data.message.chatRoomId, currentChatId);
 			if (!shouldNotify) return;
 			toast.custom((t) => (
 				<UnseenChatToast t={t} 
@@ -63,22 +62,33 @@ const SidebarChatList: FC<SidebarChatListProps> = ({ initialChats, sessionId, in
 			// add unseen number
 			setUnseenMessages((prev) => {
 				const unseenCount = prev.get(data.message.chatRoomId) ?? 0;
-				return new Map(prev.set(data.message.chatRoomId, unseenCount + 1));
+				const newMap = new Map(prev);
+				newMap.set(data.message.chatRoomId, unseenCount + 1);
+				return newMap;
 			});
-			await axios.post('/api/message/unseen', {
-				chatRoomId: currentChatId,
+			axios.post('/api/message/unseen', {
+				chatRoomId: data.message.chatRoomId,
 			})
 		};
 		const newRoomHandler = (data: ChatRoom) => {
 			setChats((prev) => [...prev, data]);
 		};
+		const onRemoveUserHandler = ({memberId, roomId}: DeleteUserSocketPayload) => {
+			setChats((pre) => pre.filter((chat) => chat.id !== roomId));
+		};
 
+		socket.on(deleteUserEventListener(sessionId), onRemoveUserHandler);
 		socket.on(newMessageEventListener(sessionId), newMessageHandler);
 		socket.on(newRoomEventListener(sessionId), newRoomHandler);
 
 		return () => {
 			socket.removeListener(newMessageEventListener(sessionId), newMessageHandler);
 			socket.removeListener(newRoomEventListener(sessionId), newRoomHandler);
+			socket.removeListener(
+				deleteUserEventListener(sessionId),
+				onRemoveUserHandler
+			);
+
 			disconnect();
 		};
 	});
@@ -88,7 +98,7 @@ const SidebarChatList: FC<SidebarChatListProps> = ({ initialChats, sessionId, in
 				const unseenMessagesCount = unseenMessages.get(chat.id) ?? 0;
 				return (
 					<li key={chat.id}>
-						<Link
+						<a
 							href={`/chat/${chat.id}`}
 							className="text-gray-700 hover:text-indigo-600 hover:bg-gray-50 group flex items-center gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold"
 						>
@@ -98,7 +108,7 @@ const SidebarChatList: FC<SidebarChatListProps> = ({ initialChats, sessionId, in
 									{unseenMessagesCount}
 								</div>
 							) : null}
-						</Link>
+						</a>
 					</li>
 				);
 			})}

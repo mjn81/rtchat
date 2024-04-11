@@ -1,4 +1,5 @@
-import { chatRoomMemberStatus, messages } from "@/db/schema";
+import { db } from '@/lib/db';
+import { chatRoomMemberStatus, messages, } from "@/db/schema";
 import { authOptions } from "@/lib/auth";
 import { chatEventListener, newMessageEventListener, push } from "@/lib/utils";
 import { messageValidator } from "@/lib/validations/message";

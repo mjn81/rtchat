@@ -1,30 +1,40 @@
+import { db } from '@/lib/db';
 import ChatInput from '@/components/ChatInput';
 import Messages from '@/components/Messages';
 import RoomHeader from '@/components/RoomHeader';
-import { FriendRoomInfoModal, FriendRoomInfoModalProps, RoomInfoModal, RoomInfoModalProps } from '@/components/RoomInfoHeader';
-import { chatRoomMemberStatus, chatRoomMembers, messages, users } from '@/db/schema';
+import {
+	FriendRoomInfoModal,
+	FriendRoomInfoModalProps,
+	RoomInfoModal,
+	RoomInfoModalProps,
+} from '@/components/RoomInfoHeader';
+import {
+	chatRoomMemberStatus,
+	chatRoomMembers,
+	messages,
+	users,
+} from '@/db/schema';
 import { authOptions } from '@/lib/auth';
 import { getFriendFromChatRoomName, isUserPrivateChat } from '@/lib/utils';
 import { and, desc, eq } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
-import Image from 'next/image';
 import { notFound, redirect } from 'next/navigation';
 import { type FC, type PropsWithChildren } from 'react';
 
 interface PageProps extends PropsWithChildren {
-  params: {
-    roomId: string,
-  }
+	params: {
+		roomId: string;
+	};
 }
 
 const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
 	const session = await getServerSession(authOptions);
-  const chatRoomDetails = await db?.query.chatRooms.findFirst({
+	const chatRoomDetails = await db?.query.chatRooms.findFirst({
 		where: (chatRoom) => eq(chatRoom.id, roomId),
-  });
-	if (!session) notFound()
+	});
+	if (!session) notFound();
 	if (!chatRoomDetails) redirect('/chat');
-  const isMember = await db?.query.chatRoomMembers.findFirst({
+	const isMember = await db?.query.chatRoomMembers.findFirst({
 		where: (member) =>
 			and(
 				eq(member.chatRoomId, roomId),
@@ -32,28 +42,29 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
 				eq(member.status, chatRoomMemberStatus.enumValues[0])
 			),
 	});
-  if (!isMember) notFound()
-  
-  const initialMessages = await db?.query.messages.findMany({
-    where: (message) => eq(message.chatRoomId, roomId),
-    orderBy: desc(messages.createdAt),
-  });
-  
-  const roomName = chatRoomDetails.name;
-  if (isUserPrivateChat(roomName)) {
-    const friendId = getFriendFromChatRoomName(roomName, session.user.id);
-    const friendDetail = await db?.query.users.findFirst({
-      where: (user) => eq(user.id, friendId),
-    });
+	if (!isMember) notFound();
 
-    if (!friendDetail) notFound();
-    return (
+	const initialMessages = await db?.query.messages.findMany({
+		where: (message) => eq(message.chatRoomId, roomId),
+		orderBy: desc(messages.createdAt),
+	});
+
+	const roomName = chatRoomDetails.name;
+	if (isUserPrivateChat(roomName)) {
+		const friendId = getFriendFromChatRoomName(roomName, session.user.id);
+		const friendDetail = await db?.query.users.findFirst({
+			where: (user) => eq(user.id, friendId),
+		});
+
+		if (!friendDetail) notFound();
+		return (
 			<div className="flex flex-col flex-1 justify-between h-full max-h-[calc(100vh-2rem)]">
 				<div className="flex sm:items-center  justify-between pb-3 border-b-2 border-gray-200">
 					<RoomHeader
+						sessionId={session.user.id}
 						isPrivate
 						roomImage={friendDetail.image ?? ''}
-						roomName={friendDetail.name ?? ''}
+						initialRoomName={friendDetail.name ?? ''}
 						friendEmail={friendDetail.email}
 						Modal={FriendRoomInfoModal}
 						modalProps={
@@ -76,41 +87,43 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
 			</div>
 		);
 	}
-	
+
 	const members = await db
 		?.select({
 			user: users,
 			chatRoomMember: {
 				status: chatRoomMembers.status,
-			}
+			},
 		})
 		.from(chatRoomMembers)
 		.where(eq(chatRoomMembers.chatRoomId, roomId))
 		.innerJoin(users, eq(chatRoomMembers.userId, users.id));
-	
+
 	const joinedMembers: User[] = [];
 	// including users that left chat
 	const allMembersInfoMembers: User[] = [];
-	
-	for (const {chatRoomMember, user} of members ?? []) {
+
+	for (const { chatRoomMember, user } of members ?? []) {
 		if (chatRoomMember.status === chatRoomMemberStatus.enumValues[0]) {
 			joinedMembers.push(user);
 		}
 		allMembersInfoMembers.push(user);
 	}
-		
-  return (
+
+	return (
 		<div className="flex flex-col flex-1 justify-between h-full max-h-[calc(100vh-2rem)]">
 			<div className="flex sm:items-center  justify-between pb-3 border-b-2 border-gray-200">
 				<RoomHeader
 					roomImage=""
-					roomName={chatRoomDetails.name}
-					membersCount={joinedMembers.length}
+					sessionId={session.user.id}
+					initialRoomName={chatRoomDetails.name}
+					membersCountInitial={joinedMembers.length}
 					Modal={RoomInfoModal}
+					roomId={roomId}
 					modalProps={
 						{
 							roomDetail: chatRoomDetails,
-							members: joinedMembers,
+							membersInitial: joinedMembers,
 							sessionId: session.user.id,
 						} satisfies RoomInfoModalProps
 					}
@@ -127,6 +140,6 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
 			<ChatInput isRoom chatId={roomId} roomName={chatRoomDetails.name} />
 		</div>
 	);
-}
+};
 
 export default Page;

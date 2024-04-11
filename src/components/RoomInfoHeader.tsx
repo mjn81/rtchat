@@ -1,34 +1,69 @@
 'use client'
-import { useState, type FC } from 'react';
+import { useEffect, useState, type FC } from 'react';
 import { type BaseModalProps, Modal } from './ui/Modal';
 import Image from 'next/image';
 import { Copy, Eye, EyeOff, RefreshCw,  X } from 'lucide-react';
 import { ChatRoom } from '@/db/schema';
 import { format } from 'date-fns';
-import { cn, createJoinRoomURL, createProtectedText } from '@/lib/utils';
+import { changeRoomUserEventListener, cn, createJoinRoomURL, createProtectedText, joinedEventListener } from '@/lib/utils';
 import axios, { AxiosError } from 'axios';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 import { removeUserValidator, updateRoomValidator } from '@/lib/validations/room';
 import { z } from 'zod';
 import { Button } from './ui/Button';
+import { useSocketStore } from '@/store/socket';
+import { useRouter } from 'next/navigation';
+import { emit } from 'process';
 
 export interface RoomInfoModalProps {
 	roomDetail: ChatRoom;
 	sessionId: string;
-  members: Partial<User>[];
+  membersInitial: Partial<User>[];
 }
 const formatTimestamp = (timestamp: Date) => {
 	// date time format
 	return format(timestamp, 'MM/dd/yyyy HH:mm a');
 };
-export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId , roomDetail, members, setIsOpen, isOpen}) => {
+export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId , roomDetail, membersInitial, setIsOpen, isOpen}) => {
+	const router = useRouter();
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [isChanged, setIsChanged] = useState<boolean>(false);
 	const [error, setError] = useState<string>('');
+	const [members, setMembers] = useState(membersInitial)
 	const [name, setName] = useState<string>(roomDetail.name);
 	const [isHidden, setIsHidden] = useState<boolean>(true);
 	const roomUrl = createJoinRoomURL(roomDetail.url);
+	const isAdmin = roomDetail.creatorId === sessionId;
+	const connect = useSocketStore(state => state.connect);
+	const disconnect = useSocketStore((state) => state.disconnect);
+	useEffect(() => {
+		const socket = connect();
+		const onRemoveUserHandler = ({memberId}: DeleteUserSocketPayload) => {
+			setMembers(pre => {
+				return pre.filter((mem) => mem.id !== memberId);
+			})
+		}
+		const onUserJoinHandler = (user: User) => {
+			setMembers(pre => [...pre, user]);
+		}
+		socket.on(changeRoomUserEventListener(roomDetail.id), onRemoveUserHandler);
+		
+		socket.on(joinedEventListener(roomDetail.id), onUserJoinHandler);
+		return () => {
+			socket.removeListener(
+				changeRoomUserEventListener(roomDetail.id),
+				onRemoveUserHandler
+			);
+			socket.removeListener(
+				joinedEventListener(roomDetail.id),
+				onUserJoinHandler
+			);
+
+			disconnect();
+		}
+	});
+
 	const onUpdateRoomInfo = async () => {
 		setIsLoading(true);
 		try {
@@ -69,7 +104,6 @@ export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId
 				data: validatedBody,
 			});
 			toast.success('User removed successfully');
-			setIsOpen(false);
 		} catch (error) {
 			if (error instanceof z.ZodError) {
 				toast.error(error.errors[0].message);
@@ -93,6 +127,7 @@ export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId
 			});
 			toast.success('Room left successfully');
 			setIsOpen(false);
+			router.replace('/chat');
 		} catch (error) {
 			if (error instanceof AxiosError) {
 				toast.error(error.response?.data);
@@ -118,11 +153,12 @@ export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId
 				return;
 			}
 			toast.error('Something went wrong');
+			router.replace('/chat')
 		} finally {
 			setIsLoading(false);
 		}
 	}
-	const isAdmin = roomDetail.creatorId === sessionId;
+	
 	return (
 		<Modal isOpen={isOpen} setIsOpen={setIsOpen}>
 			<div className="shadow-md animate-go-down max-w-lg w-full m-3 relative bg-white p-4 rounded-md space-y-3">
@@ -325,112 +361,7 @@ export const FriendRoomInfoModal: FC<BaseModalProps<FriendRoomInfoModalProps>> =
 	setIsOpen,
 	isOpen,
 }) => {
-	//const [isLoading, setIsLoading] = useState<boolean>(false);
-	//const [isChanged, setIsChanged] = useState<boolean>(false);
-	//const [error, setError] = useState<string>('');
-	//const [isHidden, setIsHidden] = useState<boolean>(true);
-	//const roomUrl = createJoinRoomURL(roomDetail.url);
-	//const onUpdateRoomInfo = async () => {
-	//setIsLoading(true);
-	/**
-		 
-		 try {
-			if (!isChanged) {
-				return;
-			}
-			const validatedBody = updateRoomValidator.parse({
-				name,
-				id: roomDetail.id,
-			});
-			await axios.put('/api/room', validatedBody);
-			toast.success('Room info updated successfully');
-			setIsOpen(false);
-			setError('');
-			setIsChanged(false);
-		} catch (error) {
-			if (error instanceof z.ZodError) {
-				setError(error.errors[0].message);
-				return;
-			}
-
-			if (error instanceof AxiosError) {
-				toast.error(error.response?.data);
-				return;
-			}
-
-			toast.error('Something went wrong');
-		} finally {
-			setIsLoading(false);
-		}
-	};
-		 */
-
-	/** const onRemoveUser = async (userId: string) => {
-		if (!userId) return;
-		setIsLoading(true);
-		try {
-			const validatedBody = removeUserValidator.parse({
-				id: roomDetail.id,
-				memberId: userId,
-			});
-			await axios.delete('/api/room/admin/member', {
-				data: validatedBody,
-			});
-			toast.success('User removed successfully');
-			setIsOpen(false);
-		} catch (error) {
-			if (error instanceof z.ZodError) {
-				toast.error(error.errors[0].message);
-				return;
-			}
-			if (error instanceof AxiosError) {
-				toast.error(error.response?.data);
-				return;
-			}
-			toast.error('Something went wrong');
-		} finally {
-			setIsLoading(false);
-		}
-	};
-
-	const onLeaveRoom = async () => {
-		setIsLoading(true);
-		try {
-			await axios.delete('/api/room/leave', {
-				data: { id: roomDetail.id },
-			});
-			toast.success('Room left successfully');
-			setIsOpen(false);
-		} catch (error) {
-			if (error instanceof AxiosError) {
-				toast.error(error.response?.data);
-				return;
-			}
-			toast.error('Something went wrong');
-		} finally {
-			setIsLoading(false);
-		}
-	};
-
-	const onDeleteRoom = async () => {
-		setIsLoading(true);
-		try {
-			await axios.delete('/api/room/', {
-				data: { id: roomDetail.id },
-			});
-			toast.success('Room deleted successfully');
-			setIsOpen(false);
-		} catch (error) {
-			if (error instanceof AxiosError) {
-				toast.error(error.response?.data);
-				return;
-			}
-			toast.error('Something went wrong');
-		} finally {
-			setIsLoading(false);
-		}
-	};
-	const isAdmin = roomDetail.creatorId === sessionId;*/
+	
 	return (
 		<Modal isOpen={isOpen} setIsOpen={setIsOpen}>
 			<div className="shadow-md animate-go-down max-w-lg w-full m-3 relative bg-white p-4 rounded-md space-y-3">

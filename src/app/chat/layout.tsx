@@ -1,3 +1,4 @@
+import { db } from '@/lib/db';
 import type { FC, PropsWithChildren } from 'react';
 import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
@@ -11,6 +12,7 @@ import { LucideIcon, UserPlus, ListPlus} from 'lucide-react';
 import SignOutButton from '@/components/signOutButton';
 import FriendRequestSidebarOption from '@/components/FriendRequestSidebarOption';
 import { createUnseenChatUserKey, getFriendFromChatRoomName, isUserPrivateChat } from '@/lib/utils';
+import { fetchRedis } from '@/helpers/redis';
 
 interface LayoutProps extends PropsWithChildren {}
 
@@ -73,16 +75,14 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
 	);
 
 	const chatIdUnseen: Map<string, number> = new Map();
-
-		Promise.all(
+	await Promise.all(
 			processesChats.map(async ({ id }) => {
-				const unseen = await redis.get(
+				const unseen = await fetchRedis('get',
 					createUnseenChatUserKey(id, session.user.id)
 				);
 				chatIdUnseen.set(id, Number(unseen) ?? 0);
 			})
 		);
-
 
 	return (
 		<div className="w-full flex h-screen">

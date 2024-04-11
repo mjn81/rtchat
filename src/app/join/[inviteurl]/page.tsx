@@ -1,7 +1,7 @@
 import JoinRoomButton from '@/components/JoinRoomButton';
 import { authOptions } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
-import { Loader2 } from 'lucide-react';
+import { db } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { notFound } from 'next/navigation';
 import type { FC } from 'react';

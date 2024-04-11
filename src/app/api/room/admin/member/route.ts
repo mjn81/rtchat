@@ -5,7 +5,7 @@ import { z } from "zod";
 import { and, eq } from "drizzle-orm";
 import { chatRoomMemberStatus, chatRoomMembers, chatRooms } from "@/db/schema";
 import { removeUserValidator } from "@/lib/validations/room";
-import { deleteUserEventListener, push } from "@/lib/utils";
+import { changeRoomUserEventListener, deleteUserEventListener, push } from "@/lib/utils";
 
 // realtime complete
 // admin removes member
@@ -68,7 +68,16 @@ export async function DELETE(req: Request) {
 				)
 		);
 		
-		await push(memberId,deleteUserEventListener(idToRemove))
+		await push(
+			{ roomId: roomToRemoveMember.id, memberId },
+			deleteUserEventListener(memberId)
+		);
+
+		await push(
+			{ roomId: roomToRemoveMember.id, memberId },
+			changeRoomUserEventListener(roomToRemoveMember.id)
+		);
+
 
 		return new Response('OK');
 	} catch (error) {

@@ -20,16 +20,11 @@ export const changeFriendRequestStatusEventListener = (userId: string) =>
 export const newRoomEventListener = (userId: string) => `newRoom:${userId}`;
 
 export const newMessageEventListener = (userId: string) => `newMessage:${userId}`; 
-
-export const leaveRoomEventListener = (chatId: string) => `leaveRoom:${chatId}`;
-export const deleteRoomEventListener = (chatId: string) =>
-	`deleteRoom:${chatId}`;
+export const deleteUserEventListener = (userId: string) => `deleteUser:${userId}`;
+export const changeRoomUserEventListener = (roomId: string) => `changeRoom:${roomId}`;
+export const joinedEventListener = (chatId: string) => `joined:${chatId}`;
 export const updateRoomEventListener = (chatId: string) =>
 	`updateRoomInfo:${chatId}`;
-
-export const deleteUserEventListener = (chatId: string) => `deleteUser:${chatId}`;
-
-export const joinedEventListener = (chatId: string) => `joined:${chatId}`;
 
 export const createChatRoomForTwoFriends = (friendId1: string, friendId2: string) =>
 	[friendId1, friendId2].sort().join('$');
@@ -63,7 +58,7 @@ export const createJoinRoomURL = (uri: string) => `${process.env.NEXT_PUBLIC_BAS
 /// takes the url and returns shortened version with ****_**** pattern
 export const createProtectedText = (text: string) => {
 	const [first, second] = text.split('_');
-	return `${first.slice(0, 3)}${'*'.repeat(first.length -3)}_${'*'.repeat( second.length)}`;
+	return `${first.slice(0, 3)}${'*'.repeat(first?.length -3)}_${'*'.repeat(second?.length)}`;
 }
 
 export const createUnseenChatUserKey = (chatId: string,userId: string) => `chat:unseen:${chatId}:${userId}`;

@@ -3,15 +3,15 @@ import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { and, eq } from "drizzle-orm";
-import { chatRooms  } from "@/db/schema";
+import { ChatRoom, chatRooms  } from "@/db/schema";
 import { addMembersToChatRoom, generateChatRoomUrl } from "@/helpers/query/chatRoom";
 import {
 	createRoomValidator,
 	updateRoomValidator,
 } from '@/lib/validations/room';
-import { deleteRoomEventListener, push, updateRoomEventListener } from "@/lib/utils";
+import { newRoomEventListener, push, updateRoomEventListener } from "@/lib/utils";
 
-// no realtime needed
+// realtime complete
 // create room
 export async function POST(req: Request) {
   try {
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 			return new Response('Unauthorized', { status: 401 });
 		}
 
-		let id: string | null = null;
+		let chat: ChatRoom | null = null;
 		// url exists
 		if (url) {
 			const doesUrlExist = await db.query.chatRooms.findFirst({
@@ -38,28 +38,28 @@ export async function POST(req: Request) {
 			}
 
 			// create a chat room
-			const chatRoomIdRaw = await db.insert(chatRooms).values({
+			const rawChatRoom = await db.insert(chatRooms).values({
 				creatorId: session.user.id,
 				name: name,
 				url: url,
-			}).returning({id: chatRooms.id});
-			id = chatRoomIdRaw[0].id;
+			}).returning();
+			chat = rawChatRoom[0];
 		}
 		else {
 			const url = generateChatRoomUrl(name);
 			// create a chat room
-			const chatRoomIdRaw = await db.insert(chatRooms).values({
+			const chatRoomRaw = await db.insert(chatRooms).values({
 				creatorId: session.user.id,
 				name: name,
 				url: url,
-			}).returning({
-				id: chatRooms.id,
-			});
-			id = chatRoomIdRaw[0].id;
+			}).returning();
+			chat= chatRoomRaw[0];
 		}
 
 		// add the user to the chat room
-		await addMembersToChatRoom(id, [session.user.id]);
+		await addMembersToChatRoom(chat.id, [session.user.id]);
+
+		await push(chat, newRoomEventListener(session.user.id));
 		return new Response('OK');
 	} catch (error) {
     if (error instanceof z.ZodError) {
@@ -107,8 +107,6 @@ export async function DELETE(req: Request) {
 		}
 		
 		await db.delete(chatRooms).where(eq(chatRooms.id, idToRemove));
-
-		await push('DONE!',deleteRoomEventListener(idToRemove))
 
 		return new Response('OK');
 	} catch (error) {
