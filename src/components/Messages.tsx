@@ -5,9 +5,8 @@ import type { FC } from "react";
 import { format } from 'date-fns';
 import Image from "next/image";
 import { Message } from "@/db/schema";
-import { SOCKET_URL } from "@/constants/socket";
 import { useSocketStore } from "@/store/socket";
-
+import md from 'markdown-it';
 
 interface MessagesProps {
 	initialMessages: Message[];
@@ -38,6 +37,16 @@ const Messages: FC<MessagesProps> = ({chatId,initialMessages, sessionId, chatPar
 			disconnect();
 		};
 	}, [sessionId, chatId]);
+
+	const [chatPartnersMap, setChatPartnersMap] = useState<Map<string, User>>(new Map());
+	useEffect(() => {
+		const map: Map<string, User> = new Map();
+		for (const partner of chatPartners) {
+			map.set(partner.id, partner);
+		}
+		setChatPartnersMap(map);
+	}, []);
+		
   return (
 		<div
 			id="messages"
@@ -46,9 +55,9 @@ const Messages: FC<MessagesProps> = ({chatId,initialMessages, sessionId, chatPar
 			<div ref={scrollDownRef}></div>
 			{messages.map((message, index) => {
         const isCurrentUser = message.sender === sessionId;
-
         const hasNextMessageFromSameUser = messages[index - 1]?.sender === messages[index].sender
-				const partner = chatPartners.find((partner) => partner.id === message.sender);
+				const partner = chatPartnersMap.get(message.sender);
+				const text = md().render(message.text);
         return (
 					<div
 						className="chat-message"
@@ -70,8 +79,8 @@ const Messages: FC<MessagesProps> = ({chatId,initialMessages, sessionId, chatPar
 							>
 								<span
 									className={cn('px-4 py-2 rounded-lg inline-block', {
-										'bg-indigo-600 text-white': isCurrentUser,
-										'bg-gray-200 text-gray-900': !isCurrentUser,
+										'bg-indigo-600': isCurrentUser,
+										'bg-gray-200': !isCurrentUser,
 										'rounded-br-none':
 											!hasNextMessageFromSameUser && isCurrentUser,
 										'rounded-bl-none':
@@ -81,7 +90,16 @@ const Messages: FC<MessagesProps> = ({chatId,initialMessages, sessionId, chatPar
 									<span className="block leading-tight text-gray-400 text-[0.6rem]">
 										{formatTimestamp(message.updatedAt)}
 									</span>
-									{message.text}
+									<p
+										className={cn(
+											'p-0 m-0 prose text-white prose-a:text-white prose-headings:text-white',
+											{
+												'text-white': isCurrentUser,
+												'text-gray-900': !isCurrentUser,
+											}
+										)}
+										dangerouslySetInnerHTML={{ __html: text }}
+									></p>
 								</span>
 							</div>
 							<div

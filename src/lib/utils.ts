@@ -36,11 +36,10 @@ export const getFriendFromChatRoomName = (roomName: string, userId: string) =>
 
 /// TODO: make this into markdown
 export const requestFriendToJoinMessage = (url: string) =>
-	`Join Our Chatroom!
-	Hi,
-	Hope you're good! We've got this cool chatroom going on and I thought you might want to join in. <a href="${url}">Just click here</a> to jump in!
-	Catch you there!
-	Cheers</pre>`;
+	`## Join Our Chatroom!
+Hi, Hope you're good! We've got this cool chatroom going on and I thought you might want to join in. [Just click here](${url}) to jump in!
+Catch you there!4
+Cheers`;
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -61,4 +60,12 @@ export const createProtectedText = (text: string) => {
 	return `${first.slice(0, 3)}${'*'.repeat(first?.length -3)}_${'*'.repeat(second?.length)}`;
 }
 
-export const createUnseenChatUserKey = (chatId: string,userId: string) => `chat:unseen:${chatId}:${userId}`;
+export const createUnseenChatUserKey = (chatId: string, userId: string) => `chat:unseen:${chatId}:${userId}`;
+
+
+export const detectLinkToMd = (plainText: string) => {
+	// url regex, works with http, https, www and end with .something
+	const urlRegex =
+		/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/g;
+	return plainText.replaceAll(urlRegex, '[$1]($1)');
+}

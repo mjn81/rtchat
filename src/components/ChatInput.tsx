@@ -8,6 +8,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { messageValidator } from "@/lib/validations/message";
 import { messageType } from "@/db/schema";
+import { detectLinkToMd } from "@/lib/utils";
 
 
 interface ChatInputProps {
@@ -25,7 +26,7 @@ const ChatInput: FC<ChatInputProps> = ({chatPartner , chatId, isRoom=false, room
     setIsLoading(true);
     try {
       const validatedMessage = messageValidator.parse({
-				text: input,
+				text: detectLinkToMd(input),
 				type: messageType.enumValues[0],
 				chatRoomId: chatId,
 			});
