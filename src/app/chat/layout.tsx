@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import SidebarChatList from '@/components/SidebarChatList';
-import { ChatRoom, chatRoomMemberStatus, chatRoomMembers, chatRooms, friendRequestStatus, friendRequests } from '@/db/schema';
+import { chatRoomMemberStatus, chatRoomMembers, chatRooms, friendRequestStatus, friendRequests } from '@/db/schema';
 import { and, count, eq } from 'drizzle-orm';
 import { LucideIcon, UserPlus, ListPlus} from 'lucide-react';
 import SignOutButton from '@/components/signOutButton';
 import FriendRequestSidebarOption from '@/components/FriendRequestSidebarOption';
-import { getFriendFromChatRoomName, isUserPrivateChat } from '@/lib/utils';
+import { createUnseenChatUserKey, getFriendFromChatRoomName, isUserPrivateChat } from '@/lib/utils';
 
 interface LayoutProps extends PropsWithChildren {}
 
@@ -70,7 +70,19 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
 				eq(friendRequests.toUserId, session.user.id),
 				eq(friendRequests.status, friendRequestStatus.enumValues[0])
 			)
+	);
+
+	const chatIdUnseen: Map<string, number> = new Map();
+
+		Promise.all(
+			processesChats.map(async ({ id }) => {
+				const unseen = await redis.get(
+					createUnseenChatUserKey(id, session.user.id)
+				);
+				chatIdUnseen.set(id, Number(unseen) ?? 0);
+			})
 		);
+
 
 	return (
 		<div className="w-full flex h-screen">
@@ -89,6 +101,7 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
 					<ul role="list" className="flex flex-1 flex-col gap-y-7">
 						<li>
 							<SidebarChatList
+								initialUnseen={chatIdUnseen}
 								sessionId={session.user.id}
 								initialChats={processesChats}
 							/>

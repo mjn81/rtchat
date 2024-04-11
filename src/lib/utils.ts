@@ -55,3 +55,5 @@ export const createProtectedText = (text: string) => {
 	const [first, second] = text.split('_');
 	return `${first.slice(0, 3)}${'*'.repeat(first.length -3)}_${'*'.repeat( second.length)}`;
 }
+
+export const createUnseenChatUserKey = (chatId: string,userId: string) => `chat:unseen:${chatId}:${userId}`;

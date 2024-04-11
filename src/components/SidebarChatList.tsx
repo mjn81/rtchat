@@ -9,30 +9,45 @@ import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import UnseenChatToast from './UnseenChatToast';
+import axios from 'axios';
 
 interface SidebarChatListProps {
 	initialChats: ChatRoom[];
 	sessionId: string;
+	initialUnseen: Map<string, number>;
 }
 
-const SidebarChatList: FC<SidebarChatListProps> = ({ initialChats, sessionId }) => {
+
+const SidebarChatList: FC<SidebarChatListProps> = ({ initialChats, sessionId, initialUnseen }) => {
 	const pathname = usePathname();
 	const [currentChatId, setCurrentChatId] = useState<string>(getCurrentChatId(pathname));
 	const [chats, setChats] = useState<ChatRoom[]>(initialChats);
-	const [unseenMessages, setUnseenMessages] = useState<Message[]>([]);
+	const [unseenMessages, setUnseenMessages] = useState<Map<string, number>>(initialUnseen);
 	const connect = useSocketStore((state) => state.connect);
 	const disconnect = useSocketStore((state) => state.disconnect);
 	useEffect(() => {
 		if (pathname?.includes('chat')) {
-			setCurrentChatId(() => getCurrentChatId(pathname));
-			setUnseenMessages((prev) =>
-			prev.filter((msg) => !pathname.includes(msg.chatRoomId))
-			);
-    }
+			const cId = getCurrentChatId(pathname);
+			setCurrentChatId(() => cId);
+			// clear chat unseen messages
+			setUnseenMessages((prev) => {
+				const unseenCount = prev.get(cId) ?? 0;
+				if (unseenCount > 0) {
+					prev.set(cId, 0);
+					return new Map(prev);
+				}
+				axios.delete('/api/message/unseen', {
+					data: {
+						id: cId,
+					}
+				});
+				return prev;
+			});
+		}
 	}, [pathname]);
 	useEffect(() => {
 		const socket = connect();
-		const newMessageHandler = (data: ExtendedMessage) => {
+		const newMessageHandler = async (data: ExtendedMessage) => {
 			// notification logic
 			const shouldNotify = data.message.chatRoomId !== currentChatId;
 			console.log('sg', shouldNotify, data.message.chatRoomId, currentChatId);
@@ -45,7 +60,14 @@ const SidebarChatList: FC<SidebarChatListProps> = ({ initialChats, sessionId }) 
 					senderName={data.sender.name ?? ''}
 				/>
 			));
-			setUnseenMessages((prev) => [...prev, data.message]);
+			// add unseen number
+			setUnseenMessages((prev) => {
+				const unseenCount = prev.get(data.message.chatRoomId) ?? 0;
+				return new Map(prev.set(data.message.chatRoomId, unseenCount + 1));
+			});
+			await axios.post('/api/message/unseen', {
+				chatRoomId: currentChatId,
+			})
 		};
 		const newRoomHandler = (data: ChatRoom) => {
 			setChats((prev) => [...prev, data]);
@@ -63,9 +85,7 @@ const SidebarChatList: FC<SidebarChatListProps> = ({ initialChats, sessionId }) 
 	return (
 		<ul role="list" className="max-h-[25rem] overflow-y-auto -mx-2 space-y-1">
 			{chats.sort().map((chat) => {
-				const unseenMessagesCount = unseenMessages.filter(
-					(unseen) => unseen.chatRoomId === chat.id && unseen.sender !== sessionId
-				).length;
+				const unseenMessagesCount = unseenMessages.get(chat.id) ?? 0;
 				return (
 					<li key={chat.id}>
 						<Link
