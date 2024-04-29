@@ -1,15 +1,14 @@
-import { Message } from "@/db/schema";
-import { SOCKET_API_URL } from "@/constants/socket";
-import axios from "axios";
+import { SOCKET_API_URL } from '@/constants/socket';
+import axios from 'axios';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 export const push = async (data: any, id: string) => {
-  return axios.post(`${SOCKET_API_URL}/api/push`, {
+	return axios.post(`${SOCKET_API_URL}/api/push`, {
 		data,
 		id,
 	});
-}
+};
 
 export const chatEventListener = (chatId: string) => `chat:${chatId}`;
 export const friendRequestEventListener = (userId: string) =>
@@ -19,15 +18,20 @@ export const changeFriendRequestStatusEventListener = (userId: string) =>
 
 export const newRoomEventListener = (userId: string) => `newRoom:${userId}`;
 
-export const newMessageEventListener = (userId: string) => `newMessage:${userId}`; 
-export const deleteUserEventListener = (userId: string) => `deleteUser:${userId}`;
-export const changeRoomUserEventListener = (roomId: string) => `changeRoom:${roomId}`;
+export const newMessageEventListener = (userId: string) =>
+	`newMessage:${userId}`;
+export const deleteUserEventListener = (userId: string) =>
+	`deleteUser:${userId}`;
+export const changeRoomUserEventListener = (roomId: string) =>
+	`changeRoom:${roomId}`;
 export const joinedEventListener = (chatId: string) => `joined:${chatId}`;
 export const updateRoomEventListener = (chatId: string) =>
 	`updateRoomInfo:${chatId}`;
 
-export const createChatRoomForTwoFriends = (friendId1: string, friendId2: string) =>
-	[friendId1, friendId2].sort().join('$');
+export const createChatRoomForTwoFriends = (
+	friendId1: string,
+	friendId2: string
+) => [friendId1, friendId2].sort().join('$');
 
 export const isUserPrivateChat = (roomName: string) => roomName.includes('$');
 
@@ -45,27 +49,29 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-
 export const getCurrentChatId = (currentPath: string | undefined | null) => {
 	if (!currentPath || !currentPath.includes('chat')) {
 		return '';
 	}
 	return currentPath.split('/').pop() as string;
-}
+};
 
-export const createJoinRoomURL = (uri: string) => `${process.env.NEXT_PUBLIC_BASE_URL}/join/${uri}`
+export const createJoinRoomURL = (uri: string) =>
+	`${process.env.NEXT_PUBLIC_BASE_URL}/join/${uri}`;
 /// takes the url and returns shortened version with ****_**** pattern
 export const createProtectedText = (text: string) => {
 	const [first, second] = text.split('_');
-	return `${first.slice(0, 3)}${'*'.repeat(first?.length -3)}_${'*'.repeat(second?.length)}`;
-}
+	return `${first.slice(0, 3)}${'*'.repeat(first?.length - 3)}_${'*'.repeat(
+		second?.length
+	)}`;
+};
 
-export const createUnseenChatUserKey = (chatId: string, userId: string) => `chat:unseen:${chatId}:${userId}`;
-
+export const createUnseenChatUserKey = (chatId: string, userId: string) =>
+	`chat:unseen:${chatId}:${userId}`;
 
 export const detectLinkToMd = (plainText: string) => {
 	// url regex, works with http, https, www and end with .something
 	const urlRegex =
 		/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/g;
 	return plainText.replaceAll(urlRegex, '[$1]($1)');
-}
+};
