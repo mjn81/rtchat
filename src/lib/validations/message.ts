@@ -10,3 +10,9 @@ export const messageValidator = z.object({
 export const messageArrayValidator = z.array(messageValidator);
 
 export type MessageBody = z.infer<typeof messageValidator>
+
+export const getMessageValidator = z.object({
+	roomId: z.string(),
+	cursor: z.string().optional(),
+	limit: z.number().optional(),
+});

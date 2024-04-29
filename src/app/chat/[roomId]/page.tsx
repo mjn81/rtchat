@@ -11,7 +11,6 @@ import {
 import {
 	chatRoomMemberStatus,
 	chatRoomMembers,
-	messages,
 	users,
 } from '@/db/schema';
 import { authOptions } from '@/lib/auth';
@@ -20,6 +19,8 @@ import { and, desc, eq } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
 import { notFound, redirect } from 'next/navigation';
 import { type FC, type PropsWithChildren } from 'react';
+import { getChatRoomMessages } from '@/helpers/query/message';
+import { ChevronLeft } from 'lucide-react';
 
 interface PageProps extends PropsWithChildren {
 	params: {
@@ -44,9 +45,8 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
 	});
 	if (!isMember) notFound();
 
-	const initialMessages = await db?.query.messages.findMany({
-		where: (message) => eq(message.chatRoomId, roomId),
-		orderBy: desc(messages.createdAt),
+	const {messages: initialMessages, nextCursor: cursor, hasMore} = await getChatRoomMessages({
+		roomId,
 	});
 
 	const roomName = chatRoomDetails.name;
@@ -58,8 +58,8 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
 
 		if (!friendDetail) notFound();
 		return (
-			<div className="flex flex-col flex-1 justify-between h-full max-h-[calc(100vh-2rem)]">
-				<div className="flex sm:items-center  justify-between pb-3 border-b-2 border-gray-200">
+			<div className="flex flex-col flex-1 justify-between h-full lg:max-h-[calc(100vh-2rem)]">
+				<div className="flex sm:items-center justify-between pb-3 border-b-2 border-gray-200">
 					<RoomHeader
 						sessionId={session.user.id}
 						isPrivate
@@ -79,9 +79,11 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
 				<Messages
 					chatId={roomId}
 					sessionImg={session.user.image}
-					chatPartners={[friendDetail]}
+					chatPartnersMap={new Map([[friendId, friendDetail]])}
 					sessionId={session.user.id}
 					initialMessages={initialMessages ?? []}
+					nextCursor={cursor}
+					hasMore={hasMore}
 				/>
 				<ChatInput chatId={roomId} chatPartner={friendDetail} />
 			</div>
@@ -101,13 +103,12 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
 
 	const joinedMembers: User[] = [];
 	// including users that left chat
-	const allMembersInfoMembers: User[] = [];
-
+	const chatRoomMembersMap = new Map<string, User>();
 	for (const { chatRoomMember, user } of members ?? []) {
 		if (chatRoomMember.status === chatRoomMemberStatus.enumValues[0]) {
 			joinedMembers.push(user);
 		}
-		allMembersInfoMembers.push(user);
+		chatRoomMembersMap.set(user.id, user);
 	}
 
 	return (
@@ -133,9 +134,11 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
 			<Messages
 				chatId={roomId}
 				sessionImg={session.user.image}
-				chatPartners={allMembersInfoMembers}
+				chatPartnersMap={chatRoomMembersMap}
 				sessionId={session.user.id}
 				initialMessages={initialMessages ?? []}
+				nextCursor={cursor}
+				hasMore={hasMore}
 			/>
 			<ChatInput isRoom chatId={roomId} roomName={chatRoomDetails.name} />
 		</div>

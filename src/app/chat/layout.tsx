@@ -6,39 +6,52 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import SidebarChatList from '@/components/SidebarChatList';
-import { chatRoomMemberStatus, chatRoomMembers, chatRooms, friendRequestStatus, friendRequests } from '@/db/schema';
+import {
+	chatRoomMemberStatus,
+	chatRoomMembers,
+	chatRooms,
+	friendRequestStatus,
+	friendRequests,
+} from '@/db/schema';
 import { and, count, eq } from 'drizzle-orm';
-import { LucideIcon, UserPlus, ListPlus} from 'lucide-react';
+import { LucideIcon, UserPlus, ListPlus } from 'lucide-react';
 import SignOutButton from '@/components/signOutButton';
 import FriendRequestSidebarOption from '@/components/FriendRequestSidebarOption';
-import { createUnseenChatUserKey, getFriendFromChatRoomName, isUserPrivateChat } from '@/lib/utils';
+import {
+	createUnseenChatUserKey,
+	getFriendFromChatRoomName,
+	isUserPrivateChat,
+} from '@/lib/utils';
 import { fetchRedis } from '@/helpers/redis';
 
 interface LayoutProps extends PropsWithChildren {}
 
-type SideBarOption =  {
+type SideBarOption = {
 	id: number;
 	name: string;
 	href: string;
 	icon: LucideIcon;
-}
+};
 const sideBarOptions: SideBarOption[] = [
-	
-	
-	{id: 1, name: 'Create room', href: '/chat/room/add', icon:ListPlus },
+	{ id: 1, name: 'Create room', href: '/chat/room/add', icon: ListPlus },
 	{ id: 2, name: 'Add friend', href: '/chat/friends/add', icon: UserPlus },
 ];
 
 const Layout: FC<LayoutProps> = async ({ children }) => {
 	const session = await getServerSession(authOptions);
 	if (!session) notFound();
-  // query remove duplicate
-  const chats = await db
+	// query remove duplicate
+	const chats = await db
 		?.selectDistinct({ chatRoom: chatRooms })
 		.from(chatRoomMembers)
-		.where(and(eq(chatRoomMembers.userId, session.user.id), eq(chatRoomMembers.status, chatRoomMemberStatus.enumValues[0])))
+		.where(
+			and(
+				eq(chatRoomMembers.userId, session.user.id),
+				eq(chatRoomMembers.status, chatRoomMemberStatus.enumValues[0])
+			)
+		)
 		.innerJoin(chatRooms, eq(chatRooms.id, chatRoomMembers.chatRoomId));
-	
+
 	const processesChats = await Promise.all(
 		chats?.map(async (chat) => {
 			if (isUserPrivateChat(chat.chatRoom.name)) {
@@ -72,23 +85,27 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
 				eq(friendRequests.toUserId, session.user.id),
 				eq(friendRequests.status, friendRequestStatus.enumValues[0])
 			)
-	);
+		);
 
 	const chatIdUnseen: Map<string, number> = new Map();
 	await Promise.all(
-			processesChats.map(async ({ id }) => {
-				const unseen = await fetchRedis('get',
-					createUnseenChatUserKey(id, session.user.id)
-				);
-				chatIdUnseen.set(id, Number(unseen) ?? 0);
-			})
-		);
+		processesChats.map(async ({ id }) => {
+			const unseen = await fetchRedis(
+				'get',
+				createUnseenChatUserKey(id, session.user.id)
+			);
+			chatIdUnseen.set(id, Number(unseen) ?? 0);
+		})
+	);
 
 	return (
-		<div className="w-full flex h-screen">
-			<div className="flex h-full w-full max-w-xs grow flex-col gap-y-5 overflow-y-auto overflow-x-hidden border-r border-gray-200 bg-white px-6">
-				<Link href="/chat" className="font-bold text-indigo-600 text-lg flex h-16 shrink-0 items-center">
-					R<span className='text-indigo-800'>T</span> Chat
+		<div className="w-full flex flex-col-reverse lg:flex-row h-screen">
+			<div className="hidden lg:flex w-full h-full max-w-xs grow flex-col gap-y-5 overflow-y-auto overflow-x-hidden border-r border-gray-200 bg-white px-6">
+				<Link
+					href="/chat"
+					className="font-bold text-indigo-600 text-lg flex h-16 shrink-0 items-center"
+				>
+					R<span className="text-indigo-800">T</span> Chat
 				</Link>
 
 				{(chats?.length ?? 0) > 0 ? (
@@ -130,7 +147,9 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
 								<li>
 									<FriendRequestSidebarOption
 										sessionId={session.user.id}
-										initialUnseenRequestCount={unseenRequestCount?.at(0)?.count ?? 0}
+										initialUnseenRequestCount={
+											unseenRequestCount?.at(0)?.count ?? 0
+										}
 									/>
 								</li>
 							</ul>
@@ -165,7 +184,7 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
 					</ul>
 				</nav>
 			</div>
-			<aside className="max-h-screen w-full container py-6 md:py-4">
+			<aside className="max-lg:flex-1 max-h-screen w-full container py-4">
 				{children}
 			</aside>
 		</div>
