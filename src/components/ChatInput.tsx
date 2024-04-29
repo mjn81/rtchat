@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { messageValidator } from "@/lib/validations/message";
 import { messageType } from "@/db/schema";
 import { detectLinkToMd } from "@/lib/utils";
+import { ArrowUp } from "lucide-react";
 
 
 interface ChatInputProps {
@@ -60,21 +61,21 @@ const ChatInput: FC<ChatInputProps> = ({chatPartner , chatId, isRoom=false, room
 							? `Message in @${roomName ?? ''}`
 							: `Message #${chatPartner?.name ?? ''}`
 					}
-					className="block w-full resize-none border-0 bg-transparent text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:py-1.5 sm:text-sm sm:leading-6"
+					className="block w-full resize-none border-0 bg-transparent text-gray-900 placeholder:text-gray-400 focus:ring-0 py-1.5 max-lg:pr-10 text-sm leading-6"
 				/>
 				<div
 					onClick={() => textareaRef.current?.focus()}
-					className="py-2"
+					className="lg:py-2"
 					aria-hidden
 				>
-					<div className="py-px">
+					<div className="max-lg:hidden py-px">
 						<div className="h-9" />
 					</div>
 				</div>
-				<div className="absolute right-0 bottom-0 flex justify-between py-2 pl-3 pr-2">
+				<div className="absolute right-0 bottom-0 flex justify-between max-lg:-top-0.5 py-2 pl-3 pr-2">
 					<div className="flex-shrink-0">
-						<Button isLoading={isLoading} onClick={sendMessage} type="submit">
-							Post
+						<Button className="max-lg:w-6 max-lg:h-6 max-lg:rounded-full max-lg:p-0 max-lg:aspect-square" isLoading={isLoading} onClick={sendMessage} type="submit">
+							<ArrowUp className="max-lg:h-4 max-lg:w-4" />
 						</Button>
 					</div>
 				</div>
