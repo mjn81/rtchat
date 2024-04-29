@@ -3,13 +3,13 @@
 import type { FC } from "react";
 import  { useRef, useState } from "react";
 import ReactTextareaAutosize from "react-textarea-autosize";
-import { Button } from "./ui/Button";
+import { Button } from "./ui/button";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { messageValidator } from "@/lib/validations/message";
 import { messageType } from "@/db/schema";
 import { detectLinkToMd } from "@/lib/utils";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, Loader2 } from "lucide-react";
 
 
 interface ChatInputProps {
@@ -74,7 +74,10 @@ const ChatInput: FC<ChatInputProps> = ({chatPartner , chatId, isRoom=false, room
 				</div>
 				<div className="absolute right-0 bottom-0 flex justify-between max-lg:-top-0.5 py-2 pl-3 pr-2">
 					<div className="flex-shrink-0">
-						<Button className="max-lg:w-6 max-lg:h-6 max-lg:rounded-full max-lg:p-0 max-lg:aspect-square" isLoading={isLoading} onClick={sendMessage} type="submit">
+						<Button className="max-lg:w-6 max-lg:h-6 max-lg:rounded-full max-lg:p-0 max-lg:aspect-square" disabled={isLoading} onClick={sendMessage} type="submit">
+							{
+								isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null
+							}
 							<ArrowUp className="max-lg:h-4 max-lg:w-4" />
 						</Button>
 					</div>

@@ -1,13 +1,13 @@
 'use client'
 import { FC, useState } from "react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { addFriendValidator } from "@/lib/validations/add-friend";
 import axios, { AxiosError } from "axios";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import {  X } from "lucide-react";
+import {  Loader2, X } from "lucide-react";
 
 interface AddFriendFormProps {
   
@@ -92,7 +92,10 @@ const AddFriendForm: FC<AddFriendFormProps> = () => {
 					placeholder="you@example.com"
 					className="block w-full rounded-md border-0 py-1.5  text-gray-900 shadow-sm ring-1 ring-inset focus:ring-inset focus:shadow ring-gray-300 focus:ring-gray-300 placeholder:text-gray-400 sm:text-sm sm:leading-6"
 				/>
-				<Button isLoading={isLoading} className="w-full sm:w-fit">Add</Button>
+				<Button disabled={isLoading} className="w-full sm:w-fit">
+					{isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+					Add
+				</Button>
 			</div>
 		</form>
 	);

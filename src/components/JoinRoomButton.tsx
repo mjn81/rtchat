@@ -1,9 +1,10 @@
 'use client'
 import axios, { AxiosError } from 'axios';
 import { useState, type FC } from 'react';
-import { Button } from './ui/Button';
+import { Button } from './ui/button';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
 interface JoinRoomButtonProps {
   roomName: string;
@@ -28,9 +29,16 @@ const JoinRoomButton: FC<JoinRoomButtonProps> = ({roomName, url}) => {
       setIsLoading(false)
     }
   }
-  return <Button isLoading={isLoading} onClick={onClick} className='text-2xl h-14 px-8'>
-    Join {roomName} Now!
-  </Button>;
+  return (
+		<Button
+			disabled={isLoading}
+			onClick={onClick}
+			className="text-2xl h-14 px-8"
+		>
+			{isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+			Join {roomName} Now!
+		</Button>
+	);
 }
 
 export default JoinRoomButton;

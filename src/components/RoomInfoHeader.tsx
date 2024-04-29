@@ -1,6 +1,5 @@
 'use client'
 import { useEffect, useState, type FC } from 'react';
-import { type BaseModalProps, Modal } from './ui/Modal';
 import Image from 'next/image';
 import { Copy, Eye, EyeOff, RefreshCw,  X } from 'lucide-react';
 import { ChatRoom } from '@/db/schema';
@@ -8,13 +7,14 @@ import { format } from 'date-fns';
 import { changeRoomUserEventListener, cn, createJoinRoomURL, createProtectedText, joinedEventListener } from '@/lib/utils';
 import axios, { AxiosError } from 'axios';
 import toast from 'react-hot-toast';
-import { useForm } from 'react-hook-form';
 import { removeUserValidator, updateRoomValidator } from '@/lib/validations/room';
 import { z } from 'zod';
-import { Button } from './ui/Button';
+import { Button } from './ui/button';
 import { useSocketStore } from '@/store/socket';
 import { useRouter } from 'next/navigation';
-import { emit } from 'process';
+import { DialogContent } from './ui/dialog';
+
+
 
 export interface RoomInfoModalProps {
 	roomDetail: ChatRoom;
@@ -25,7 +25,8 @@ const formatTimestamp = (timestamp: Date) => {
 	// date time format
 	return format(timestamp, 'MM/dd/yyyy HH:mm a');
 };
-export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId , roomDetail, membersInitial, setIsOpen, isOpen}) => {
+
+export const RoomInfoModal: FC<BaseCustomDialogProps<RoomInfoModalProps>> = ({sessionId , roomDetail, membersInitial, setIsOpen, isOpen}) => {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [isChanged, setIsChanged] = useState<boolean>(false);
@@ -160,7 +161,7 @@ export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId
 	}
 	
 	return (
-		<Modal isOpen={isOpen} setIsOpen={setIsOpen}>
+		<DialogContent>
 			<div className="shadow-md animate-go-down max-w-lg w-full m-3 relative bg-white p-4 rounded-md space-y-3">
 				<button
 					onClick={() => setIsOpen(false)}
@@ -197,7 +198,8 @@ export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId
 						{error && <p className="text-red-500 text-sm">{error}</p>}
 					</div>
 
-					<button
+					<Button
+						variant='ghost'
 						disabled={!isChanged}
 						type="submit"
 						onClick={onUpdateRoomInfo}
@@ -208,7 +210,7 @@ export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId
 								'animate-spin': isLoading,
 							})}
 						/>
-					</button>
+					</Button>
 				</div>
 
 				<div className="overflow-x-auto">
@@ -316,12 +318,13 @@ export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId
 								) : null}
 
 								{isAdmin && member.id !== roomDetail.creatorId ? (
-									<button
+									<Button
+										variant='destructive'
 										onClick={onRemoveUser.bind(null, member.id ?? '')}
-										className="text-sm text-rose-700 hover:underline"
+										className="text-sm"
 									>
 										remove
-									</button>
+									</Button>
 								) : null}
 							</li>
 						))}
@@ -347,7 +350,7 @@ export const RoomInfoModal: FC<BaseModalProps<RoomInfoModalProps>> = ({sessionId
 					)}
 				</div>
 			</div>
-		</Modal>
+		</DialogContent>
 	);
 }
 export interface FriendRoomInfoModalProps {
@@ -355,7 +358,7 @@ export interface FriendRoomInfoModalProps {
 	friend: User;
 }
 
-export const FriendRoomInfoModal: FC<BaseModalProps<FriendRoomInfoModalProps>> = ({
+export const FriendRoomInfoModal: FC<BaseCustomDialogProps<FriendRoomInfoModalProps>> = ({
 	sessionId,
 	friend,
 	setIsOpen,
@@ -363,14 +366,15 @@ export const FriendRoomInfoModal: FC<BaseModalProps<FriendRoomInfoModalProps>> =
 }) => {
 	
 	return (
-		<Modal isOpen={isOpen} setIsOpen={setIsOpen}>
+		<DialogContent>
 			<div className="shadow-md animate-go-down max-w-lg w-full m-3 relative bg-white p-4 rounded-md space-y-3">
-				<button
+				<Button
+					variant='ghost'
 					onClick={() => setIsOpen(false)}
 					className="absolute top-1.5 right-1.5 w-9 h-9 aspect-square rounded-full flex justify-center items-center"
 				>
 					<X className="text-gray-900" />
-				</button>
+				</Button>
 				<div className="relative border-b pb-2 border-gray-300 flex items-center gap-3">
 					<div className="relative overflow-hidden w-8 h-8 sm:w-12 sm:h-12">
 						<Image
@@ -429,6 +433,6 @@ export const FriendRoomInfoModal: FC<BaseModalProps<FriendRoomInfoModalProps>> =
 					)}
 				</div> */}
 			</div>
-		</Modal>
+		</DialogContent>
 	);
 };

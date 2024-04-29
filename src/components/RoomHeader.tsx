@@ -15,8 +15,8 @@ import React, {
 	type FC,
 	type PropsWithChildren,
 } from 'react';
+import { Dialog, DialogTrigger } from './ui/dialog';
 
-/// TODO: refactor modal component
 interface RoomHeaderProps extends PropsWithChildren {
 	initialRoomName: string;
 	membersCountInitial?: number;
@@ -85,15 +85,12 @@ const RoomHeader: FC<RoomHeaderProps> = ({
 		};
 	});
 	return (
-		<>
+		<Dialog>
 			<div className="flex items-center gap-2">
 				<button onClick={() => router.back()}>
 					<ChevronLeft className="lg:hidden w-8 h-8" />
 				</button>
-				<div
-					onClick={() => {
-						setIsOpen(true);
-					}}
+				<DialogTrigger
 					className="relative cursor-pointer flex items-center space-x-4"
 				>
 					<div className="relative">
@@ -124,11 +121,11 @@ const RoomHeader: FC<RoomHeaderProps> = ({
 						</span>
 					</div>
 					{children}
-				</div>
+				</DialogTrigger>
 			</div>
 
 			<Modal isOpen={isOpen} setIsOpen={setIsOpen} {...modalProps} />
-		</>
+		</Dialog>
 	);
 };
 
