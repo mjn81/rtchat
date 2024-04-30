@@ -5,22 +5,26 @@ import axios, { AxiosError } from 'axios';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import Link from 'next/link';
-import { X } from 'lucide-react';
 import { createRoomValidator } from '@/lib/validations/room';
 import { useRouter } from 'next/navigation';
-import { DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
+import {
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from '../ui/dialog';
 import { Input } from '../ui/input';
+import { Sparkles } from 'lucide-react';
 
 interface CreateRoomFormProps {}
 type FormData = z.infer<typeof createRoomValidator>;
 const CreateRoomForm: FC<CreateRoomFormProps> = () => {
 	const [showSuccess, setShowSuccess] = useState<boolean>(false);
-	const router = useRouter();
 	const {
 		register,
 		handleSubmit,
 		setError,
+		reset,
 		formState: { errors },
 	} = useForm<FormData>({
 		resolver: zodResolver(createRoomValidator),
@@ -35,7 +39,7 @@ const CreateRoomForm: FC<CreateRoomFormProps> = () => {
 
 			await axios.post('/api/room', validatedBody);
 			setShowSuccess(true);
-			router.push('/chat');
+			reset();
 		} catch (error) {
 			if (error instanceof z.ZodError) {
 				setError(error.name as keyof FormData, { message: error.message });
@@ -52,6 +56,10 @@ const CreateRoomForm: FC<CreateRoomFormProps> = () => {
 			setError('root', {
 				message: 'Something went wrong',
 			});
+		} finally {
+			setTimeout(() => {
+				setShowSuccess(false);
+			}, 2000);
 		}
 	};
 
@@ -96,7 +104,20 @@ const CreateRoomForm: FC<CreateRoomFormProps> = () => {
 						className="block w-full rounded-md border-0 py-1.5  text-gray-900 shadow-sm ring-1 ring-inset focus:ring-inset focus:shadow ring-gray-300 focus:ring-gray-300 placeholder:text-gray-400 sm:text-sm sm:leading-6"
 					/>
 				</label>
-				<Button className="w-full mt-1">Create</Button>
+				<Button
+					type="submit"
+					disabled={showSuccess}
+					className="w-full mt-1 transition-all"
+				>
+					{showSuccess ? (
+						<span className="flex items-center justify-center gap-1">
+							Created
+							<Sparkles className="w-4 h-4 animate-pulse" />
+						</span>
+					) : (
+						'Create Room'
+					)}
+				</Button>
 			</div>
 		</form>
 	);

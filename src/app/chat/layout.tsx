@@ -125,7 +125,7 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
 							/>
 						</li>
 
-						<li className="-mx-6 mt-auto flex items-center">
+						<li className="-mx-6 mt-auto flex items-center gap-2">
 							<div className="flex flex-1 items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-gray-900">
 								<div className="relative h-8 w-8 bg-gray-50">
 									<Image
@@ -149,7 +149,7 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
 									</span>
 								</div>
 							</div>
-							<SignOutButton />
+							<SignOutButton className='h-full' />
 						</li>
 					</ul>
 				</nav>

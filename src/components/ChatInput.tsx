@@ -72,7 +72,7 @@ const ChatInput: FC<ChatInputProps> = ({chatPartner , chatId, isRoom=false, room
 						<div className="h-2 lg:h-9" />
 					</div>
 				</div>
-				<div className="absolute right-0 bottom-0 flex justify-between max-md:-top-0.5 max-lg:top-0.5 py-2 pl-3 pr-2">
+				<div className="absolute right-0 bottom-0 flex justify-between py-2 pl-3 pr-2">
 					<div className="flex-shrink-0">
 						<Button className="max-lg:w-6 max-lg:h-6 max-lg:rounded-full max-lg:p-0 max-lg:aspect-square" disabled={isLoading} onClick={sendMessage} type="submit">
 							{

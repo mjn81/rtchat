@@ -64,7 +64,7 @@ const AddFriendForm: FC<AddFriendFormProps> = () => {
 	return (
 		<form onSubmit={handleSubmit(onSubmit)}>
 			<DialogHeader>
-				<section className="flex mt-3 justify-between items-center">
+				<section className="flex justify-between items-center">
 					<DialogTitle asChild>
 						<label
 							htmlFor="email"
