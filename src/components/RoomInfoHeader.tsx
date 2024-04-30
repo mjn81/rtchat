@@ -162,13 +162,7 @@ export const RoomInfoModal: FC<BaseCustomDialogProps<RoomInfoModalProps>> = ({se
 	
 	return (
 		<DialogContent>
-			<div className="shadow-md animate-go-down max-w-lg w-full m-3 relative bg-white p-4 rounded-md space-y-3">
-				<button
-					onClick={() => setIsOpen(false)}
-					className="absolute top-1.5 right-1.5 w-9 h-9 aspect-square rounded-full flex justify-center items-center"
-				>
-					<X className="text-gray-900" />
-				</button>
+			<div className="relative  space-y-3">
 				<div className="relative border-b pb-2 border-gray-300 flex items-center gap-3">
 					<div className="relative overflow-hidden w-8 h-8 sm:w-12 sm:h-12">
 						<Image
@@ -334,8 +328,10 @@ export const RoomInfoModal: FC<BaseCustomDialogProps<RoomInfoModalProps>> = ({se
 				<div className="flex items-center justify-center gap-2">
 					<Button
 						onClick={onLeaveRoom}
+						variant='outline'
 						className={cn('mt-4 w-full ', {
 							'bg-rose-600 hover:bg-rose-800': !isAdmin,
+							'text-rose-600 hover:text-rose-800 border-rose-600 hover:border-rose-800 hover:bg-rose-900/10': isAdmin,
 						})}
 					>
 						Leave Room

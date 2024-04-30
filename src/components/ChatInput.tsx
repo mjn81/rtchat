@@ -44,7 +44,7 @@ const ChatInput: FC<ChatInputProps> = ({chatPartner , chatId, isRoom=false, room
 
   return (
 		<div className="border-t border-gray-200 pt-4 mb-2 sm:mb-0">
-			<div className="relative flex-1 overflow-hidden rounded-lg shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-indigo-600">
+			<div className="relative flex-1 px-2 overflow-hidden rounded-lg shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-indigo-600 transition-shadow">
 				<ReactTextareaAutosize
 					ref={textareaRef}
 					onKeyDown={(e) => {
@@ -61,18 +61,18 @@ const ChatInput: FC<ChatInputProps> = ({chatPartner , chatId, isRoom=false, room
 							? `Message in @${roomName ?? ''}`
 							: `Message #${chatPartner?.name ?? ''}`
 					}
-					className="block w-full resize-none border-0 bg-transparent text-gray-900 placeholder:text-gray-400 focus:ring-0 py-1.5 max-lg:pr-10 text-sm leading-6"
+					className="outline-none block w-full resize-none border-0 bg-transparent text-gray-900 placeholder:text-gray-400 focus:ring-0 py-1.5 max-lg:pr-10 text-sm leading-6"
 				/>
 				<div
 					onClick={() => textareaRef.current?.focus()}
 					className="lg:py-2"
 					aria-hidden
 				>
-					<div className="max-lg:hidden py-px">
-						<div className="h-9" />
+					<div className="max-md:hidden py-px">
+						<div className="h-2 lg:h-9" />
 					</div>
 				</div>
-				<div className="absolute right-0 bottom-0 flex justify-between max-lg:-top-0.5 py-2 pl-3 pr-2">
+				<div className="absolute right-0 bottom-0 flex justify-between max-md:-top-0.5 max-lg:top-0.5 py-2 pl-3 pr-2">
 					<div className="flex-shrink-0">
 						<Button className="max-lg:w-6 max-lg:h-6 max-lg:rounded-full max-lg:p-0 max-lg:aspect-square" disabled={isLoading} onClick={sendMessage} type="submit">
 							{
