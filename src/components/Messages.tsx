@@ -1,6 +1,6 @@
 'use client';
 import { chatEventListener } from '@/lib/utils';
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import type { FC } from 'react';
 import { type Message } from '@/db/schema';
 import { useSocketStore } from '@/store/socket';
@@ -109,22 +109,26 @@ const Messages: FC<MessagesProps> = ({
 					<span>Loading...</span>
 				</div>
 			)}
-			{messages.map((message, index) => {
-				const hasNextMessageFromSameUser =
-					messages[index - 1]?.sender === messages[index].sender;
-				const isLastMessage = index === messages.length - 1;
-				return (
-					<MessageComponent
-						hasNextMessageFromSameUser={hasNextMessageFromSameUser}
-						ref={isLastMessage ? ref : null}
-						sessionImg={sessionImg}
-						key={message.id}
-						chatPartnersMap={chatPartnersMap}
-						message={message}
-						sessionId={sessionId}
-					/>
-				);
-			})}
+			<Suspense
+				fallback={<div className="w-full h-full text-7xl">loading...</div>}
+			>
+				{messages.map((message, index) => {
+					const hasNextMessageFromSameUser =
+						messages[index - 1]?.sender === messages[index].sender;
+					const isLastMessage = index === messages.length - 1;
+					return (
+						<MessageComponent
+							hasNextMessageFromSameUser={hasNextMessageFromSameUser}
+							ref={isLastMessage ? ref : null}
+							sessionImg={sessionImg}
+							key={message.id}
+							chatPartnersMap={chatPartnersMap}
+							message={message}
+							sessionId={sessionId}
+						/>
+					);
+				})}
+			</Suspense>
 		</div>
 	);
 };

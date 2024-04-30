@@ -39,7 +39,7 @@ const Login: FC<LoginProps> = () => {
 							Welcome <span className="text-primary">Back!</span>
 						</h2>
 						<p className='text-muted-foreground font-light leading-5 text-sm mt-2'>
-							If you don&apos;t have an account already. Don&apos;t worry just click bellow and we will take care of it.
+							If you don&apos;t have an account already. Don&apos;t worry just use the buttons bellow and we will take care of it.
 						</p>
 					</div>
 					<div className="space-y-3 w-full">
@@ -89,7 +89,14 @@ const Login: FC<LoginProps> = () => {
 					aria-hidden
 					className="h-full w-full login-image relative aspect-square overflow-hidden hidden lg:block lg:col-span-3 bg-indigo-500 border-l-2 shadow-inner border-r-indigo-600"
 				>
-					<div className="absolute inset-0 w-full h-full bg-indigo-900/80" />
+					<div className="absolute flex flex-col p-10 items-start justify-end gap-3 inset-0 w-full h-full bg-indigo-900/80">
+						<h1 className='text-3xl text-white font-bold'>
+							Real time messaging got easier with RTChat!
+						</h1>
+						<p className='text-gray-300 font-semibold'>
+							Join the community and start chatting with your friends and family.
+						</p>
+					</div>
 				</div>
 			</div>
 		</>

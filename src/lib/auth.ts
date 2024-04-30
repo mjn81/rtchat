@@ -8,6 +8,7 @@ import type {
 import { AuthOptions, DefaultSession, getServerSession } from 'next-auth';
 import { Adapter } from 'next-auth/adapters';
 import GoogleProvider from 'next-auth/providers/google';
+import GithubProvider from 'next-auth/providers/github';
 import { unstable_noStore } from 'next/cache';
 
 const getGoogleCredentials = () => {
@@ -19,6 +20,23 @@ const getGoogleCredentials = () => {
 
 	if (!clientSecret || clientSecret.length === 0) {
 		throw new Error('Google client secret is not available');
+	}
+
+	return {
+		clientId,
+		clientSecret,
+	};
+};
+
+const getGithubCredentials = () => {
+	const clientId = process.env.GITHUB_CLIENT_ID;
+	const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+	if (!clientId || clientId.length === 0) {
+		throw new Error('Github client id is not available');
+	}
+
+	if (!clientSecret || clientSecret.length === 0) {
+		throw new Error('Github client secret is not available');
 	}
 
 	return {
@@ -48,6 +66,10 @@ export const authOptions = {
 			clientId: getGoogleCredentials().clientId,
 			clientSecret: getGoogleCredentials().clientSecret,
 		}),
+		GithubProvider({
+			clientId: getGithubCredentials().clientId,
+			clientSecret: getGithubCredentials().clientSecret,
+		})
 	],
 	callbacks: {
 		async jwt({ token, user }) {

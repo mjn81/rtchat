@@ -94,9 +94,15 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
 			<div className="hidden lg:flex w-full h-full max-w-xs grow flex-col gap-y-5 overflow-y-auto overflow-x-hidden border-r border-gray-200 bg-white px-6">
 				<Link
 					href="/chat"
-					className="font-bold text-indigo-600 text-lg flex h-16 shrink-0 items-center"
+					className="font-bold text-indigo-600 text-lg flex h-16 w-fit shrink-0 items-center"
 				>
-					R<span className="text-indigo-800">T</span> Chat
+					<Image
+						className="lg:absolute lg:inset-0"
+						src="/logo.svg"
+						alt="RTChat"
+						width={64}
+						height={64}
+					/>
 				</Link>
 
 				{(chats?.length ?? 0) > 0 ? (
@@ -149,7 +155,7 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
 									</span>
 								</div>
 							</div>
-							<SignOutButton className='h-full' />
+							<SignOutButton className="h-full" />
 						</li>
 					</ul>
 				</nav>
