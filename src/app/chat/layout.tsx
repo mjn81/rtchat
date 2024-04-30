@@ -1,3 +1,4 @@
+'use server'
 import { db } from '@/lib/db';
 import type { FC, PropsWithChildren } from 'react';
 import { authOptions } from '@/lib/auth';
@@ -14,28 +15,18 @@ import {
 	friendRequests,
 } from '@/db/schema';
 import { and, count, eq } from 'drizzle-orm';
-import { LucideIcon, UserPlus, ListPlus } from 'lucide-react';
 import SignOutButton from '@/components/signOutButton';
-import FriendRequestSidebarOption from '@/components/FriendRequestSidebarOption';
 import {
 	createUnseenChatUserKey,
 	getFriendFromChatRoomName,
 	isUserPrivateChat,
 } from '@/lib/utils';
 import { fetchRedis } from '@/helpers/redis';
+import SidebarOptions from '@/components/SidebarOption';
 
-interface LayoutProps extends PropsWithChildren {}
+interface LayoutProps extends PropsWithChildren { }
 
-type SideBarOption = {
-	id: number;
-	name: string;
-	href: string;
-	icon: LucideIcon;
-};
-const sideBarOptions: SideBarOption[] = [
-	{ id: 1, name: 'Create room', href: '/chat/room/add', icon: ListPlus },
-	{ id: 2, name: 'Add friend', href: '/chat/friends/add', icon: UserPlus },
-];
+
 
 const Layout: FC<LayoutProps> = async ({ children }) => {
 	const session = await getServerSession(authOptions);
@@ -128,31 +119,10 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
 							<div className="text-xs font-semibold leading-6 text-gray-400">
 								Overview
 							</div>
-							<ul role="list" className="-mx-2 mt-2 space-y-1">
-								{sideBarOptions.map((option) => {
-									return (
-										<li key={option.id}>
-											<Link
-												href={option.href}
-												className="text-gray-700 hover:text-indigo-600 hover:bg-gray-50 group flex gap-3 rounded-md p-2 text-sm leading-6 font-semibold"
-											>
-												<span className="text-gray-400 border-gray-200 group-hover:text-indigo-600 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border text-[0.625rem] font-medium bg-white">
-													<option.icon className="h-4 w-4" />
-												</span>
-												<span className="truncate">{option.name}</span>
-											</Link>
-										</li>
-									);
-								})}
-								<li>
-									<FriendRequestSidebarOption
-										sessionId={session.user.id}
-										initialUnseenRequestCount={
-											unseenRequestCount?.at(0)?.count ?? 0
-										}
-									/>
-								</li>
-							</ul>
+							<SidebarOptions
+								sessionId={session.user.id}
+								unseenRequestCount={unseenRequestCount?.at(0)?.count ?? 0}
+							/>
 						</li>
 
 						<li className="-mx-6 mt-auto flex items-center">
@@ -184,7 +154,7 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
 					</ul>
 				</nav>
 			</div>
-			<aside className="max-lg:flex-1 max-h-screen w-full container py-4">
+			<aside className="max-lg:flex-1 max-h-screen w-full container p-4">
 				{children}
 			</aside>
 		</div>

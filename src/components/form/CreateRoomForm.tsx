@@ -9,6 +9,8 @@ import Link from 'next/link';
 import { X } from 'lucide-react';
 import { createRoomValidator } from '@/lib/validations/room';
 import { useRouter } from 'next/navigation';
+import { DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Input } from '../ui/input';
 
 interface CreateRoomFormProps {}
 type FormData = z.infer<typeof createRoomValidator>;
@@ -24,17 +26,17 @@ const CreateRoomForm: FC<CreateRoomFormProps> = () => {
 		resolver: zodResolver(createRoomValidator),
 	});
 
-  const CreateRoom = async ({ name, url }: { name: string; url?: string }) => {
+	const CreateRoom = async ({ name, url }: { name: string; url?: string }) => {
 		try {
 			const validatedBody = createRoomValidator.parse({
-        name,
-        url
+				name,
+				url,
 			});
 
 			await axios.post('/api/room', validatedBody);
 			setShowSuccess(true);
 			router.push('/chat');
-    } catch (error) {
+		} catch (error) {
 			if (error instanceof z.ZodError) {
 				setError(error.name as keyof FormData, { message: error.message });
 				return;
@@ -58,19 +60,13 @@ const CreateRoomForm: FC<CreateRoomFormProps> = () => {
 	};
 
 	return (
-		<form
-			onSubmit={handleSubmit(onSubmit)}
-			className="animate-go-down max-w-md w-full m-3 relative bg-white p-4 rounded-md"
-		>
-			<Link
-				href=".."
-				className="absolute top-1.5 right-1.5 w-9 h-9 aspect-square rounded-full flex justify-center items-center"
-			>
-				<X className="text-gray-900" />
-			</Link>
-			<p className="block text-md mt-3 font-medium leading-6 text-gray-900">
-				Create New Room
-			</p>
+		<form onSubmit={handleSubmit(onSubmit)}>
+			<DialogHeader>
+				<DialogTitle>Create New Room</DialogTitle>
+				<DialogDescription>
+					create a new room and invite your friends to join
+				</DialogDescription>
+			</DialogHeader>
 
 			<div className="mt-2 flex-col flex gap-2">
 				<label htmlFor="name" className=" space-y-1">
@@ -79,7 +75,7 @@ const CreateRoomForm: FC<CreateRoomFormProps> = () => {
 						<p className="text-red-600">{errors.name?.message}</p>
 					</span>
 
-					<input
+					<Input
 						{...register('name')}
 						type="text"
 						id="name"
@@ -92,7 +88,7 @@ const CreateRoomForm: FC<CreateRoomFormProps> = () => {
 						Room Url
 						<p className="text-red-600">{errors.url?.message}</p>
 					</span>
-					<input
+					<Input
 						{...register('url')}
 						type="text"
 						id="url"
