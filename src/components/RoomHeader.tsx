@@ -96,7 +96,7 @@ const RoomHeader: FC<RoomHeaderProps> = ({
 					<div className="relative cursor-pointer flex items-center space-x-4">
 						<div className="relative">
 							<Avatar asChild>
-								<div className="relative w-8 h-8 sm:w-12 sm:h-12 overflow-hidden">
+								<div className="relative w-9 h-9 sm:w-12 sm:h-12 overflow-hidden">
 									<AvatarImage
 										width={48}
 										height={48}
@@ -111,13 +111,11 @@ const RoomHeader: FC<RoomHeaderProps> = ({
 						</div>
 
 						<div className="flex flex-col leading-tight">
-							<div className="text-xl flex items-center">
-								<span className="text-gray-700 mr-3 font-semibold">
-									{roomName}
-								</span>
+							<div className="text-md lg:text-xl flex items-center text-gray-700 mr-3 font-semibold">
+								{roomName}
 							</div>
 
-							<span className="text-sm text-gray-600">
+							<span className="text-xs lg:text-sm text-gray-600">
 								{isPrivate
 									? friendEmail
 									: !!membersCount && membersCount > 1
