@@ -42,6 +42,7 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
 								initialUnseen={chatIdUnseen}
 								sessionId={session.user.id}
 								initialChats={processesChats}
+								isSubscribing
 							/>
 						</li>
 

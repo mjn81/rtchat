@@ -22,12 +22,14 @@ interface SidebarChatListProps {
 	initialChats: ChatRoom[];
 	sessionId: string;
 	initialUnseen: Map<string, number>;
+	isSubscribing?: boolean;
 }
 
 const SidebarChatList: FC<SidebarChatListProps> = ({
 	initialChats,
 	sessionId,
 	initialUnseen,
+	isSubscribing=false,
 }) => {
 	const pathname = usePathname();
 	const [currentChatId, setCurrentChatId] = useState<string>(
@@ -61,18 +63,22 @@ const SidebarChatList: FC<SidebarChatListProps> = ({
 	useEffect(() => {
 		const socket = connect();
 		const newMessageHandler = (data: ExtendedMessage) => {
-			// notification logic
 			const shouldNotify = data.message.chatRoomId !== currentChatId;
 			if (!shouldNotify) return;
-			toast.custom((t) => (
-				<UnseenChatToast
-					t={t}
-					chatId={data.message.chatRoomId}
-					message={data.message}
-					senderImage={data.sender.image ?? ''}
-					senderName={data.sender.name ?? ''}
-				/>
-			));
+			if (!isSubscribing) {
+				toast.custom((t) => (
+					<UnseenChatToast
+						t={t}
+						chatId={data.message.chatRoomId}
+						message={data.message}
+						senderImage={data.sender.image ?? ''}
+						senderName={data.sender.name ?? ''}
+					/>
+				));
+				axios.post('/api/message/unseen', {
+					chatRoomId: data.message.chatRoomId,
+				});
+			};
 			// add unseen number
 			setUnseenMessages((prev) => {
 				const unseenCount = prev.get(data.message.chatRoomId) ?? 0;
@@ -80,10 +86,9 @@ const SidebarChatList: FC<SidebarChatListProps> = ({
 				newMap.set(data.message.chatRoomId, unseenCount + 1);
 				return newMap;
 			});
-			axios.post('/api/message/unseen', {
-				chatRoomId: data.message.chatRoomId,
-			});
+			
 		};
+
 		const newRoomHandler = (data: ChatRoom) => {
 			setChats((prev) => [...prev, data]);
 		};

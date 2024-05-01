@@ -89,7 +89,7 @@ const RoomHeader: FC<RoomHeaderProps> = ({
 	return (
 		<Dialog>
 			<div className="flex items-center gap-2">
-				<button onClick={() => router.back()}>
+				<button onClick={() => router.replace('/chat')}>
 					<ChevronLeft className="lg:hidden w-8 h-8" />
 				</button>
 				<DialogTrigger asChild>

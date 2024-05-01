@@ -72,7 +72,6 @@ export const ChatContextProvider: FC<Props> = ({ children }) => {
 				'/api/message',
 				validatedMessage
 			);
-			console.log('response message',response);
 			setMessages(
 				(pre) =>
 					pre?.map((msg) => {
