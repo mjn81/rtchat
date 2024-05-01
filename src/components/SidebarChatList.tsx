@@ -1,6 +1,12 @@
 'use client';
 import { ChatRoom } from '@/db/schema';
-import { deleteUserEventListener, getCurrentChatId, newMessageEventListener, newRoomEventListener } from '@/lib/utils';
+import {
+	cn,
+	deleteUserEventListener,
+	getCurrentChatId,
+	newMessageEventListener,
+	newRoomEventListener,
+} from '@/lib/utils';
 import { useSocketStore } from '@/store/socket';
 import { ExtendedMessage } from '@/types/types';
 import Link from 'next/link';
@@ -17,12 +23,18 @@ interface SidebarChatListProps {
 	initialUnseen: Map<string, number>;
 }
 
-
-const SidebarChatList: FC<SidebarChatListProps> = ({ initialChats, sessionId, initialUnseen }) => {
+const SidebarChatList: FC<SidebarChatListProps> = ({
+	initialChats,
+	sessionId,
+	initialUnseen,
+}) => {
 	const pathname = usePathname();
-	const [currentChatId, setCurrentChatId] = useState<string>(getCurrentChatId(pathname));
+	const [currentChatId, setCurrentChatId] = useState<string>(
+		getCurrentChatId(pathname)
+	);
 	const [chats, setChats] = useState<ChatRoom[]>(initialChats);
-	const [unseenMessages, setUnseenMessages] = useState<Map<string, number>>(initialUnseen);
+	const [unseenMessages, setUnseenMessages] =
+		useState<Map<string, number>>(initialUnseen);
 	const connect = useSocketStore((state) => state.connect);
 	const disconnect = useSocketStore((state) => state.disconnect);
 	useEffect(() => {
@@ -39,7 +51,7 @@ const SidebarChatList: FC<SidebarChatListProps> = ({ initialChats, sessionId, in
 				axios.delete('/api/message/unseen', {
 					data: {
 						id: cId,
-					}
+					},
 				});
 				return prev;
 			});
@@ -52,9 +64,10 @@ const SidebarChatList: FC<SidebarChatListProps> = ({ initialChats, sessionId, in
 			const shouldNotify = data.message.chatRoomId !== currentChatId;
 			if (!shouldNotify) return;
 			toast.custom((t) => (
-				<UnseenChatToast t={t} 
+				<UnseenChatToast
+					t={t}
 					chatId={data.message.chatRoomId}
-					message={data.message} 
+					message={data.message}
 					senderImage={data.sender.image ?? ''}
 					senderName={data.sender.name ?? ''}
 				/>
@@ -68,12 +81,15 @@ const SidebarChatList: FC<SidebarChatListProps> = ({ initialChats, sessionId, in
 			});
 			axios.post('/api/message/unseen', {
 				chatRoomId: data.message.chatRoomId,
-			})
+			});
 		};
 		const newRoomHandler = (data: ChatRoom) => {
 			setChats((prev) => [...prev, data]);
 		};
-		const onRemoveUserHandler = ({memberId, roomId}: DeleteUserSocketPayload) => {
+		const onRemoveUserHandler = ({
+			memberId,
+			roomId,
+		}: DeleteUserSocketPayload) => {
 			setChats((pre) => pre.filter((chat) => chat.id !== roomId));
 		};
 
@@ -82,7 +98,10 @@ const SidebarChatList: FC<SidebarChatListProps> = ({ initialChats, sessionId, in
 		socket.on(newRoomEventListener(sessionId), newRoomHandler);
 
 		return () => {
-			socket.removeListener(newMessageEventListener(sessionId), newMessageHandler);
+			socket.removeListener(
+				newMessageEventListener(sessionId),
+				newMessageHandler
+			);
 			socket.removeListener(newRoomEventListener(sessionId), newRoomHandler);
 			socket.removeListener(
 				deleteUserEventListener(sessionId),
@@ -100,7 +119,12 @@ const SidebarChatList: FC<SidebarChatListProps> = ({ initialChats, sessionId, in
 					<li key={chat.id}>
 						<a
 							href={`/chat/${chat.id}`}
-							className="text-gray-700 hover:text-indigo-600 hover:bg-gray-50 group flex items-center gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold"
+							className={cn(
+								'text-gray-700 hover:text-indigo-600 hover:bg-gray-50 group flex items-center gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold',
+								{
+									'bg-gray-50 text-indigo-600': currentChatId === chat.id,
+								}
+							)}
 						>
 							{chat.name}
 							{unseenMessagesCount > 0 ? (

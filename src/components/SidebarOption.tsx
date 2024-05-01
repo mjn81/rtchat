@@ -38,7 +38,7 @@ interface SidebarOptionsProps {
 }
 
 const SidebarOptions: FC<SidebarOptionsProps> = ({sessionId, unseenRequestCount}) => {
-  return (
+		return (
 		<ul role="list" className="-mx-2 mt-2 space-y-1">
 			{sideBarOptions.map((option) => {
 				return (

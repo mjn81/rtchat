@@ -19,9 +19,10 @@ interface MessageProps {
 	chatPartnersMap: Map<string, User>;
 	user: User;
 	hasNextMessageFromSameUser: boolean;
+	isDateDifferent: boolean;
 }
 const Message = React.forwardRef<HTMLDivElement, MessageProps>(
-	({ message, chatPartnersMap, user, hasNextMessageFromSameUser }, ref) => {
+	({ message, chatPartnersMap, user, hasNextMessageFromSameUser , isDateDifferent }, ref) => {
 		const isCurrentUser = message.sender === user.id;
 		const partner = !isCurrentUser
 			? chatPartnersMap.get(message.sender)
@@ -30,6 +31,15 @@ const Message = React.forwardRef<HTMLDivElement, MessageProps>(
 		const text = md().render(message.text);
 		return (
 			<div ref={ref} key={`${message.id}-${message.updatedAt}`}>
+				{isDateDifferent && (
+					<div className="text-center flex items-center gap-2 text-muted-foreground mb-1.5">
+						<span className="border-t border-gray-100 flex-1" />
+						<span className="px-2 py-0.5 bg-gray-200/30 border border-gray-200 backdrop-blur-xl rounded-full text-[0.55rem] ">
+							{format(message.createdAt, 'MMMM d, yyyy')}
+						</span>
+						<span className="border-t border-gray-100 flex-1" />
+					</div>
+				)}
 				<div
 					className={cn('flex items-end', {
 						'justify-end': isCurrentUser,

@@ -126,9 +126,15 @@ const Messages: FC<MessagesProps> = ({
 					const hasNextMessageFromSameUser =
 						messages[index - 1]?.sender === message.sender;
 					const isLastMessage = index === messages.length - 1;
+					// only compare the date and not time
+					const isDateDifferent =
+						index === messages.length - 1 ||
+						new Date(message.createdAt).toDateString() !==
+							new Date(messages[index + 1]?.createdAt).toDateString();
 					return (
 						<MessageComponent
 							hasNextMessageFromSameUser={hasNextMessageFromSameUser}
+							isDateDifferent={isDateDifferent} 
 							ref={isLastMessage ? ref : null}
 							key={message.id}
 							chatPartnersMap={chatPartnersMap}
