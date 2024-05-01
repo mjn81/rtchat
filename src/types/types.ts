@@ -6,3 +6,9 @@ export type ExtendedMessage = {
   message: Message;
   sender: Omit<User, "emailVerified">;
 }
+
+export type ChatContextMessage = Message & {
+	isLoading: boolean;
+	isError: boolean;
+	error: string;
+};

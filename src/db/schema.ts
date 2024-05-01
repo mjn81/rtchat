@@ -66,6 +66,9 @@ export const messageType = pgEnum('message_type', [
 	'AUDIO',
 ]);
 
+
+export type MessageType = typeof messageType.enumValues[number]; 
+
 export const messages = pgTable('message', {
 	id: uuid('id').defaultRandom().notNull().primaryKey(),
 	text: text('text').notNull(),

@@ -2,6 +2,7 @@
 import {
 	changeRoomUserEventListener,
 	deleteUserEventListener,
+	getInitials,
 	joinedEventListener,
 	updateRoomEventListener,
 } from '@/lib/utils';
@@ -16,6 +17,7 @@ import React, {
 	type PropsWithChildren,
 } from 'react';
 import { Dialog, DialogTrigger } from './ui/dialog';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 interface RoomHeaderProps extends PropsWithChildren {
 	initialRoomName: string;
@@ -93,15 +95,19 @@ const RoomHeader: FC<RoomHeaderProps> = ({
 				<DialogTrigger asChild>
 					<div className="relative cursor-pointer flex items-center space-x-4">
 						<div className="relative">
-							<div className="relative w-8 h-8 sm:w-12 sm:h-12 overflow-hidden">
-								<Image
-									fill
-									referrerPolicy="no-referrer"
-									src={roomImage}
-									alt={`${roomName} profile picture`}
-									className="rounded-full"
-								/>
-							</div>
+							<Avatar asChild>
+								<div className="relative w-8 h-8 sm:w-12 sm:h-12 overflow-hidden">
+									<AvatarImage
+										width={48}
+										height={48}
+										referrerPolicy="no-referrer"
+										src={''}
+										alt={`${roomName} room profile picture`}
+										className="rounded-full"
+									/>
+									<AvatarFallback>{getInitials(roomName)}</AvatarFallback>
+								</div>
+							</Avatar>
 						</div>
 
 						<div className="flex flex-col leading-tight">
@@ -119,7 +125,7 @@ const RoomHeader: FC<RoomHeaderProps> = ({
 									: `1 member`}
 							</span>
 						</div>
-					{children}
+						{children}
 					</div>
 				</DialogTrigger>
 			</div>

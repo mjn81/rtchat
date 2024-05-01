@@ -75,3 +75,9 @@ export const detectLinkToMd = (plainText: string) => {
 		/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/g;
 	return plainText.replaceAll(urlRegex, '[$1]($1)');
 };
+
+export const getInitials = (name: string) =>
+	name
+		.split(' ')
+		.map((word) => word[0])
+		.join('').toLocaleUpperCase().slice(0, 3);

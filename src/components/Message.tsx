@@ -1,51 +1,42 @@
 'use client';
 import { type Message } from '@/db/schema';
-import { cn } from '@/lib/utils';
-import React, { FC, forwardRef } from 'react';
+import { cn, getInitials } from '@/lib/utils';
+import React from 'react';
 import md from 'markdown-it';
 import Image from 'next/image';
 import { format } from 'date-fns';
+import { ChatContextMessage } from '@/types/types';
+import { Check, CheckCheck } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 const formatTimestamp = (timestamp: Date) => {
 	// date time format
-	return format(timestamp, 'MM/dd/yy HH:mm a');
+	return format(timestamp, 'h:mm a');
 };
 
 interface MessageProps {
-	message: Message;
+	message: ChatContextMessage;
 	chatPartnersMap: Map<string, User>;
-	sessionId: string;
-	sessionImg: string | null | undefined;
+	user: User;
 	hasNextMessageFromSameUser: boolean;
 }
-const Message = forwardRef<HTMLDivElement,MessageProps>(
-	(
-		{
-			message,
-			chatPartnersMap,
-			sessionId,
-			hasNextMessageFromSameUser,
-			sessionImg,
-		},
-		ref
-	) => {
-		const isCurrentUser = message.sender === sessionId;
-    const partner = chatPartnersMap.get(message.sender);
-    /// decrypt message and render markdown
+const Message = React.forwardRef<HTMLDivElement, MessageProps>(
+	({ message, chatPartnersMap, user, hasNextMessageFromSameUser }, ref) => {
+		const isCurrentUser = message.sender === user.id;
+		const partner = !isCurrentUser
+			? chatPartnersMap.get(message.sender)
+			: undefined;
+		/// decrypt message and render markdown
 		const text = md().render(message.text);
 		return (
-			<div
-				ref={ref}
-				className="chat-message"
-				key={`${message.id}-${message.updatedAt}`}
-			>
+			<div ref={ref} key={`${message.id}-${message.updatedAt}`}>
 				<div
 					className={cn('flex items-end', {
 						'justify-end': isCurrentUser,
 					})}
 				>
 					<div
-						className={cn('flex flex-col space-y-2 text-base max-w-xs mx-2', {
+						className={cn('flex flex-col space-y-0.5 text-base max-w-xs mx-2', {
 							'order-1 items-end': isCurrentUser,
 							'order-2 items-start': !isCurrentUser,
 						})}
@@ -59,9 +50,6 @@ const Message = forwardRef<HTMLDivElement,MessageProps>(
 									!hasNextMessageFromSameUser && !isCurrentUser,
 							})}
 						>
-							<span className="block leading-tight text-gray-400 text-[0.6rem]">
-								{formatTimestamp(message.updatedAt)}
-							</span>
 							<p
 								className={cn(
 									'p-0 m-0 prose text-white prose-a:text-white prose-headings:text-white',
@@ -73,22 +61,39 @@ const Message = forwardRef<HTMLDivElement,MessageProps>(
 								dangerouslySetInnerHTML={{ __html: text }}
 							></p>
 						</span>
+						<div className="flex items-center gap-1.5 text-muted-foreground">
+							<span className="block leading-tight text-[0.6rem]">
+								{formatTimestamp(message.updatedAt)}
+							</span>
+							{message?.isLoading ? (
+								<Check className="w-3.5 h-3.5" />
+							) : (
+								<CheckCheck className="w-3.5 h-3.5" />
+							)}
+						</div>
 					</div>
-					<div
-						className={cn('relative w-6 h-6', {
-							'order-2': isCurrentUser,
-							'order-1': !isCurrentUser,
-							invisible: hasNextMessageFromSameUser,
-						})}
-					>
-						<Image
-							fill
-							src={isCurrentUser ? sessionImg || '' : partner?.image || ''}
-							alt="profile picture"
-							referrerPolicy="no-referrer"
-							className="rounded-full"
-						/>
-					</div>
+					<Avatar asChild>
+						<div
+							className={cn('relative w-8 h-8 mb-4', {
+								'order-2': isCurrentUser,
+								'order-1': !isCurrentUser,
+								invisible: hasNextMessageFromSameUser,
+							})}
+						>
+							<AvatarImage
+								src={isCurrentUser ? user.image || '' : partner?.image || ''}
+								referrerPolicy="no-referrer"
+								alt="profile picture"
+								width={32}
+								height={32}
+							/>
+							<AvatarFallback>
+								{getInitials(
+									isCurrentUser ? user.name || '' : partner?.name || ''
+								)}
+							</AvatarFallback>
+						</div>
+					</Avatar>
 				</div>
 			</div>
 		);

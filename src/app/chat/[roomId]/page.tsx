@@ -8,11 +8,7 @@ import {
 	RoomInfoModal,
 	RoomInfoModalProps,
 } from '@/components/RoomInfoHeader';
-import {
-	chatRoomMemberStatus,
-	chatRoomMembers,
-	users,
-} from '@/db/schema';
+import { chatRoomMemberStatus, chatRoomMembers, users } from '@/db/schema';
 import { authOptions } from '@/lib/auth';
 import { getFriendFromChatRoomName, isUserPrivateChat } from '@/lib/utils';
 import { and, desc, eq } from 'drizzle-orm';
@@ -20,7 +16,8 @@ import { getServerSession } from 'next-auth';
 import { notFound, redirect } from 'next/navigation';
 import { type FC, type PropsWithChildren } from 'react';
 import { getChatRoomMessages } from '@/helpers/query/message';
-import { ChevronLeft } from 'lucide-react';
+import { ChatContextProvider } from '@/context/ChatContext';
+import { ChatContextMessage } from '@/types/types';
 
 interface PageProps extends PropsWithChildren {
 	params: {
@@ -45,7 +42,11 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
 	});
 	if (!isMember) notFound();
 
-	const {messages: initialMessages, nextCursor: cursor, hasMore} = await getChatRoomMessages({
+	const {
+		messages: initialMessages,
+		nextCursor: cursor,
+		hasMore,
+	} = await getChatRoomMessages({
 		roomId,
 	});
 
@@ -75,17 +76,17 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
 						}
 					/>
 				</div>
-
-				<Messages
-					chatId={roomId}
-					sessionImg={session.user.image}
-					chatPartnersMap={new Map([[friendId, friendDetail]])}
-					sessionId={session.user.id}
-					initialMessages={initialMessages ?? []}
-					nextCursor={cursor}
-					hasMore={hasMore}
-				/>
-				<ChatInput chatId={roomId} chatPartner={friendDetail} />
+				<ChatContextProvider>
+					<Messages
+						chatId={roomId}
+						user={session.user as User}
+						chatPartnersMap={new Map([[friendId, friendDetail]])}
+						initialMessages={initialMessages as ChatContextMessage[] ?? []}
+						nextCursor={cursor}
+						hasMore={hasMore}
+					/>
+					<ChatInput sessionId={session.user.id} chatId={roomId} chatPartner={friendDetail} />
+				</ChatContextProvider>
 			</div>
 		);
 	}
@@ -130,17 +131,17 @@ const Page: FC<PageProps> = async ({ children, params: { roomId } }) => {
 					}
 				/>
 			</div>
-
-			<Messages
-				chatId={roomId}
-				sessionImg={session.user.image}
-				chatPartnersMap={chatRoomMembersMap}
-				sessionId={session.user.id}
-				initialMessages={initialMessages ?? []}
-				nextCursor={cursor}
-				hasMore={hasMore}
-			/>
-			<ChatInput isRoom chatId={roomId} roomName={chatRoomDetails.name} />
+			<ChatContextProvider>
+				<Messages
+					chatId={roomId}
+					user={session.user as User}
+					chatPartnersMap={chatRoomMembersMap}
+					initialMessages={initialMessages as ChatContextMessage[] ?? []}
+					nextCursor={cursor}
+					hasMore={hasMore}
+				/>
+				<ChatInput isRoom sessionId={session.user.id} chatId={roomId} roomName={chatRoomDetails.name} />
+			</ChatContextProvider>
 		</div>
 	);
 };

@@ -1,48 +1,30 @@
 'use client';
 
-import type { FC } from "react";
-import  { useRef, useState } from "react";
-import ReactTextareaAutosize from "react-textarea-autosize";
-import { Button } from "./ui/button";
-import axios from "axios";
-import toast from "react-hot-toast";
-import { messageValidator } from "@/lib/validations/message";
-import { messageType } from "@/db/schema";
-import { detectLinkToMd } from "@/lib/utils";
-import { ArrowUp, Loader2 } from "lucide-react";
-
+import type { FC } from 'react';
+import { useContext, useRef, useState } from 'react';
+import ReactTextareaAutosize from 'react-textarea-autosize';
+import { Button } from './ui/button';
+import { ArrowUp } from 'lucide-react';
+import { ChatContext } from '@/context/ChatContext';
 
 interface ChatInputProps {
-  chatPartner?: User;
-  chatId: string;
-  roomName?: string;
-  isRoom?: boolean;
+	chatPartner?: User;
+	chatId: string;
+	roomName?: string;
+	isRoom?: boolean;
+	sessionId: string;
 }
- 
-const ChatInput: FC<ChatInputProps> = ({chatPartner , chatId, isRoom=false, roomName}) => {
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [input, setInput] = useState<string>('');
-  const sendMessage = async () => {
-    setIsLoading(true);
-    try {
-      const validatedMessage = messageValidator.parse({
-				text: detectLinkToMd(input),
-				type: messageType.enumValues[0],
-				chatRoomId: chatId,
-			});
-      await axios.post('/api/message', validatedMessage);
-      setInput('');
 
-    } catch (error) {
-      toast.error('Failed to send message. Please try again.');
-    }
-    finally {
-      setIsLoading(false);
-    }
-  }
-
-  return (
+const ChatInput: FC<ChatInputProps> = ({
+	chatPartner,
+	chatId,
+	isRoom = false,
+	roomName,
+	sessionId,
+}) => {
+	const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+	const { handleChangeInput, input, sendMessage } = useContext(ChatContext);
+	return (
 		<div className="border-t border-gray-200 pt-4 mb-2 sm:mb-0">
 			<div className="relative flex-1 px-3 py-1 overflow-hidden rounded-lg shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-indigo-600 transition-shadow">
 				<ReactTextareaAutosize
@@ -50,12 +32,16 @@ const ChatInput: FC<ChatInputProps> = ({chatPartner , chatId, isRoom=false, room
 					onKeyDown={(e) => {
 						if (e.key === 'Enter' && !e.shiftKey) {
 							e.preventDefault();
-							sendMessage();
+							sendMessage({
+								chatRoomId: chatId,
+								type: 'TEXT',
+								sessionId,
+							});
 						}
 					}}
 					rows={1}
 					value={input}
-					onChange={(e) => setInput(e.target.value)}
+					onChange={(e) => handleChangeInput(e.target.value)}
 					placeholder={
 						isRoom
 							? `Message in @${roomName ?? ''}`
@@ -74,10 +60,15 @@ const ChatInput: FC<ChatInputProps> = ({chatPartner , chatId, isRoom=false, room
 				</div>
 				<div className="absolute right-0 bottom-0 flex justify-between py-2 pl-3 pr-2">
 					<div className="flex-shrink-0">
-						<Button className="max-lg:w-6 max-lg:h-6 max-lg:rounded-full max-lg:p-0 max-lg:aspect-square" disabled={isLoading} onClick={sendMessage} type="submit">
-							{
-								isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null
-							}
+						<Button
+							className="max-lg:w-6 max-lg:h-6 max-lg:rounded-full max-lg:p-0 max-lg:aspect-square"
+							onClick={sendMessage.bind(null, {
+								chatRoomId: chatId,
+								sessionId: '',
+								type: 'TEXT',
+							})}
+							type="submit"
+						>
 							<ArrowUp className="max-lg:h-4 max-lg:w-4" />
 						</Button>
 					</div>
@@ -85,6 +76,6 @@ const ChatInput: FC<ChatInputProps> = ({chatPartner , chatId, isRoom=false, room
 			</div>
 		</div>
 	);
-}
- 
+};
+
 export default ChatInput;

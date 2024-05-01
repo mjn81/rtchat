@@ -1,4 +1,4 @@
-'use server'
+'use server';
 import { db } from '@/lib/db';
 import type { FC, PropsWithChildren } from 'react';
 import { authOptions } from '@/lib/auth';
@@ -19,14 +19,14 @@ import SignOutButton from '@/components/signOutButton';
 import {
 	createUnseenChatUserKey,
 	getFriendFromChatRoomName,
+	getInitials,
 	isUserPrivateChat,
 } from '@/lib/utils';
 import { fetchRedis } from '@/helpers/redis';
 import SidebarOptions from '@/components/SidebarOption';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-interface LayoutProps extends PropsWithChildren { }
-
-
+interface LayoutProps extends PropsWithChildren {}
 
 const Layout: FC<LayoutProps> = async ({ children }) => {
 	const session = await getServerSession(authOptions);
@@ -133,15 +133,20 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
 
 						<li className="-mx-6 mt-auto flex items-center gap-2">
 							<div className="flex flex-1 items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-gray-900">
-								<div className="relative h-8 w-8 bg-gray-50">
-									<Image
-										fill
-										referrerPolicy="no-referrer"
-										className="rounded-full"
-										src={session.user.image || ''}
-										alt="Profile picture"
-									/>
-								</div>
+								<Avatar asChild>
+									<div className="relative h-8 w-8">
+										<AvatarImage
+											width={32}
+											height={32}
+											referrerPolicy="no-referrer"
+											src={session.user.image || ''}
+											alt="Profile picture"
+										/>
+										<AvatarFallback>
+											{getInitials(session.user.name ?? 'User')}
+										</AvatarFallback>
+									</div>
+								</Avatar>
 								<span className="sr-only">Your profile</span>
 								<div className="flex flex-col">
 									<span
