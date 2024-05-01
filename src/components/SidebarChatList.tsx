@@ -16,6 +16,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import UnseenChatToast from './UnseenChatToast';
 import axios from 'axios';
+import { Ghost } from 'lucide-react';
 
 interface SidebarChatListProps {
 	initialChats: ChatRoom[];
@@ -112,31 +113,44 @@ const SidebarChatList: FC<SidebarChatListProps> = ({
 		};
 	});
 	return (
-		<ul role="list" className="max-h-[25rem] overflow-y-auto -mx-2 space-y-1">
-			{chats.sort().map((chat) => {
-				const unseenMessagesCount = unseenMessages.get(chat.id) ?? 0;
-				return (
-					<li key={chat.id}>
-						<a
-							href={`/chat/${chat.id}`}
-							className={cn(
-								'text-gray-700 hover:text-indigo-600 hover:bg-gray-50 group flex items-center gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold',
-								{
-									'bg-gray-50 text-indigo-600': currentChatId === chat.id,
-								}
-							)}
-						>
-							{chat.name}
-							{unseenMessagesCount > 0 ? (
-								<div className="bg-indigo-600 font-medium text-xs text-white w-4 h-4 rounded-full flex justify-center items-center ">
-									{unseenMessagesCount}
-								</div>
-							) : null}
-						</a>
-					</li>
-				);
-			})}
-		</ul>
+		<>
+			{(chats?.length ?? 0) > 0 ? (
+				<div className="text-md font-semibold leading-6 text-muted-foreground lg:text-xs lg:font-semibold max-lg:border-b border-border pb-2  max-lg:mb-4">
+					Your chats
+				</div>
+			) : null}
+			{!chats?.length ? (
+				<div className="lg:hidden flex items-center flex-col sm:flex-row gap-2 text-2xl sm:text-4xl font-bold text-muted-foreground/50 absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2">
+					<Ghost className="w-12 h-12" />
+					No chats yet
+				</div>
+			) : null}
+			<ul role="list" className="max-h-[25rem] overflow-y-auto -mx-2 space-y-1">
+				{chats.sort().map((chat) => {
+					const unseenMessagesCount = unseenMessages.get(chat.id) ?? 0;
+					return (
+						<li key={chat.id}>
+							<a
+								href={`/chat/${chat.id}`}
+								className={cn(
+									'text-gray-700 hover:text-primary hover:bg-gray-50 group flex items-center gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold',
+									{
+										'bg-gray-50 text-primary': currentChatId === chat.id,
+									}
+								)}
+							>
+								{chat.name}
+								{unseenMessagesCount > 0 ? (
+									<div className="bg-primary font-medium text-xs text-white w-4 h-4 rounded-full flex justify-center items-center ">
+										{unseenMessagesCount}
+									</div>
+								) : null}
+							</a>
+						</li>
+					);
+				})}
+			</ul>
+		</>
 	);
 };
 

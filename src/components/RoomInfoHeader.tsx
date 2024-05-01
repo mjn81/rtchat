@@ -277,7 +277,7 @@ export const RoomInfoModal: FC<BaseCustomDialogProps<RoomInfoModalProps>> = ({
 												{isHidden ? <Eye size={18} /> : <EyeOff size={18} />}
 											</button>
 											<button
-												className=" hover:text-indigo-600"
+												className=" hover:text-primary"
 												onClick={() => {
 													navigator.clipboard.writeText(roomUrl);
 													toast.success('Link copied to clipboard');
