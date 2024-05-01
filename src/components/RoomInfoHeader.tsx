@@ -383,14 +383,7 @@ export const FriendRoomInfoModal: FC<
 > = ({ sessionId, friend, setIsOpen, isOpen }) => {
 	return (
 		<DialogContent>
-			<div className="shadow-md animate-go-down max-w-lg w-full m-3 relative bg-white p-4 rounded-md space-y-3">
-				<Button
-					variant="ghost"
-					onClick={() => setIsOpen(false)}
-					className="absolute top-1.5 right-1.5 w-9 h-9 aspect-square rounded-full flex justify-center items-center"
-				>
-					<X className="text-gray-900" />
-				</Button>
+			<div className="w-full relative space-y-3">
 				<div className="relative border-b pb-2 border-gray-300 flex items-center gap-3">
 					<div className="relative overflow-hidden w-8 h-8 sm:w-12 sm:h-12">
 						<Image
