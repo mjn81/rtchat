@@ -1,4 +1,5 @@
 import { buttonVariants } from "@/components/ui/button";
+import { COMING_SOON_FEATURES } from "@/constants/features";
 import { authOptions } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
@@ -79,42 +80,15 @@ export default async function Home() {
 					You Soon!
 				</p>
 				<div className="flex-1 grid grid-cols-1 place-items-center xl:grid-cols-3 gap-6">
-					<div className="p-8 flex flex-col gap-3 items-center col-span-1 overflow-hidden max-w-sm h-[400px] border border-border rounded-lg shadow-lg">
-						<h4 className="text-xl font-bold text-gray-700">
-							End to end encryption!
-						</h4>
-						<p className="text-muted-foreground leading-7">
-							We are excited to introduce End-to-End Encryption in our next
-							update! This new feature ensures that only you and your
-							conversation partner can read what is sent, and nobody in between,
-							not even our team. Elevate your privacy and secure your
-							communications effortlessly. Stay tuned for this enhancement,
-							designed to protect your conversations and bring you peace of
-							mind.
-						</p>
-					</div>
-					<div className="p-8 flex flex-col gap-3 items-center col-span-1 overflow-hidden max-w-sm h-[400px] border border-border rounded-lg shadow-lg">
-						<h4 className="text-xl font-bold text-gray-700">Dark Mode!</h4>
-						<p className="text-muted-foreground leading-7">
-							Get ready for a more comfortable viewing experience with our new
-							Dark Mode feature! This update brings a sleek, eye-friendly
-							interface to our application, perfect for night-time usage or in
-							low-light conditions. Dark Mode not only helps reduce eye strain
-							but also conserves battery life on mobile devices. Switch to Dark
-							Mode and enjoy a stylish, modern look that’s easier on your eyes
-							and your device’s battery.
-						</p>
-					</div>
-					<div className="p-8 flex flex-col gap-3 items-center col-span-1 overflow-hidden max-w-sm h-[400px] border border-border rounded-lg shadow-lg">
-						<h4 className="text-xl font-bold text-gray-700">Media Messages!</h4>
-						<p className="text-muted-foreground leading-7">
-							Introducing Media Messages: Now you can enrich your chats by
-							sending images, videos, and files directly within conversations.
-							Perfect for sharing moments, collaborating on projects, or just
-							having fun, our new feature makes communication more dynamic and
-							expressive. Start enjoying a richer chat experience today!
-						</p>
-					</div>
+					{COMING_SOON_FEATURES.map(({ title, description, id }) => (
+						<div
+							key={id}
+							className="p-8 flex flex-col gap-3 items-center col-span-1 overflow-hidden max-w-sm h-[400px] border border-border rounded-lg shadow-lg"
+						>
+							<h4 className="text-xl font-bold text-gray-700">{title}</h4>
+							<p className="text-muted-foreground leading-7">{description}</p>
+						</div>
+					))}
 				</div>
 			</section>
 
