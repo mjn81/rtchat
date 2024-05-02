@@ -2,14 +2,24 @@
 const express = require('express');
 const { Server } = require('socket.io');
 const cors = require('cors');
+require('dotenv').config({
+	path: '.env',
+});
+const SOCKET_PORT = process.env.SOCKET_PORT;
+const HTTP_PORT = process.env.HTTP_PORT;
+
+console.log('env loaded socket port:', SOCKET_PORT, 'http port:', HTTP_PORT);
+
 const app = express();
-const httpServer = require('http').createServer(app);
+// Socket.io server listening
+const httpServer = require('http').createServer(app).listen(SOCKET_PORT, () => {
+	console.log(`Socket server running on port ${SOCKET_PORT}`);
+});
 const io = new Server(httpServer, {
   cors: {
     origin: '*',
-  },
+	},
 });
-const PORT = process.env.SOCKET_PORT || 4000;
 
 app.use(express.json());
 app.use(cors());
@@ -28,6 +38,8 @@ io.on('connection', (socket) => {
 
 // Define the API route for pushing messages
 app.post('/api/push', (req, res) => {
+	if (process.env.SOCKET_SERVER_SECRET !== req.headers.authorization)
+		return res.status(401).json({ error: 'Unauthorized' });
 	const { data, id } = req.body;
 	if (!data) {
 		return res.status(400).json({ error: 'eventId and data are required' });
@@ -37,8 +49,7 @@ app.post('/api/push', (req, res) => {
 	return res.json({ success: true });
 });
 
-
-// Start the server
-httpServer.listen(PORT, () => {
-	console.log(`Server running on port ${PORT}`);
+// HTTP server listening
+app.listen(HTTP_PORT, () => {
+	console.log(`HTTP Server running on ${HTTP_PORT}`);
 });

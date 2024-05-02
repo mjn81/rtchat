@@ -30,7 +30,7 @@ const Message = React.forwardRef<HTMLDivElement, MessageProps>(
 		/// decrypt message and render markdown
 		const text = md().render(message.text);
 		return (
-			<div ref={ref} key={`${message.id}-${message.updatedAt}`}>
+			<div ref={ref} className='max-w-full' key={`${message.id}-${message.updatedAt}`}>
 				{isDateDifferent && (
 					<div className="text-center flex items-center gap-2 text-muted-foreground mb-1.5">
 						<span className="border-t border-gray-100 flex-1" />
@@ -62,7 +62,7 @@ const Message = React.forwardRef<HTMLDivElement, MessageProps>(
 						>
 							<p
 								className={cn(
-									'p-0 m-0 prose text-white prose-a:text-white prose-headings:text-white',
+									'p-0 m-0 whitespace-wrap max-w-full prose text-white prose-a:text-white prose-headings:text-white',
 									{
 										'text-white': isCurrentUser,
 										'text-gray-900': !isCurrentUser,

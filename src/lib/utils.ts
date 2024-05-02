@@ -4,10 +4,18 @@ import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 export const push = async (data: any, id: string) => {
-	return axios.post(`${SOCKET_API_URL}/api/push`, {
-		data,
-		id,
-	});
+	return axios.post(
+		`${SOCKET_API_URL}/api/push`,
+		{
+			data,
+			id,
+		},
+		{
+			headers: {
+				Authorization: process.env.SOCKET_SERVER_SECRET,
+			},
+		}
+	);
 };
 
 export const chatEventListener = (chatId: string) => `chat:${chatId}`;
