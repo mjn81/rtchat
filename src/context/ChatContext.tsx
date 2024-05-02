@@ -1,5 +1,6 @@
 'use client';
 import { type MessageType, type Message, messageType } from '@/db/schema';
+import { encryptMessage } from '@/lib/security';
 import { detectLinkToMd } from '@/lib/utils';
 import { messageValidator } from '@/lib/validations/message';
 import { ChatContextMessage } from '@/types/types';
@@ -63,11 +64,14 @@ export const ChatContextProvider: FC<Props> = ({ children }) => {
 
 		setMessages((pre) => [sendingMessage, ...(pre ?? [])]);
 		try {
+			
 			const validatedMessage = messageValidator.parse({
 				text: detectLinkToMd(input),
 				type,
 				chatRoomId,
 			});
+
+			const encryptedMessage = encryptMessage(validatedMessage.text);
 			const response = await axios.post<Message>(
 				'/api/message',
 				validatedMessage
