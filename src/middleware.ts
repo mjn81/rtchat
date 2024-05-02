@@ -1,6 +1,7 @@
 import { getToken } from 'next-auth/jwt';
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
+const sensitiveRoutes = ['/dashboard', '/chat'];
 
 export default withAuth(
 	async function middleware(req) {
@@ -8,7 +9,7 @@ export default withAuth(
 
 		const isAuth = await getToken({ req });
 		const isLoginPage = pathname.startsWith('/login');
-		const sensitiveRoutes = ['/dashboard', '/chat'];
+
 
 		const isAccessSensitiveRoute = sensitiveRoutes.some((route) =>
 			pathname.startsWith(route)
@@ -24,7 +25,7 @@ export default withAuth(
 		if (!isAuth && isAccessSensitiveRoute) {
 			return NextResponse.redirect(new URL('/login', req.url));
 		}
-		if (pathname === '/')
+		if (isAuth && pathname === '/')
 			return NextResponse.redirect(new URL('/chat', req.url));
 	},
 	{
