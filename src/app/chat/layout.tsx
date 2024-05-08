@@ -13,7 +13,7 @@ import {
 import SidebarOptions from '@/components/SidebarOption';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getChatsWithUnseenCount } from '@/helpers/query/chatRoom';
-import Logo from '@/components/Logo';
+import {LogoAbsolute} from '@/components/Logo';
 
 interface LayoutProps extends PropsWithChildren {}
 
@@ -24,7 +24,7 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
 	return (
 		<div className="w-full flex flex-col-reverse lg:flex-row h-screen">
 			<div className="hidden lg:flex w-full h-full max-w-xs grow flex-col gap-y-5 overflow-y-auto overflow-x-hidden border-r border-gray-200 bg-white px-6">
-				<Logo />
+				<LogoAbsolute />
 				<nav className="flex flex-1 flex-col">
 					<ul role="list" className="flex flex-1 flex-col gap-y-7">
 						<li>

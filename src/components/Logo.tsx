@@ -4,7 +4,7 @@ import React, { FC } from 'react';
 
 interface LogoProps {}
 
-const Logo: FC<LogoProps> = () => {
+export const LogoAbsolute: FC<LogoProps> = () => {
 	return (
 		<Link
 			href="/chat"
@@ -15,4 +15,12 @@ const Logo: FC<LogoProps> = () => {
 	);
 };
 
-export default Logo;
+export const Logo: FC<LogoProps> = () => {
+	return (
+		<Link href='/' className='text-primary'>
+			<MessageSquareQuote />
+		</Link>
+	);
+}
+
+

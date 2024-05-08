@@ -5,8 +5,7 @@ import { signIn } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import Logo from '@/components/Logo';
-// import toast from 'react-hot-toast';
+import {LogoAbsolute} from '@/components/Logo';
 
 interface LoginProps {}
 type OAuthLoginMethods = 'google' | 'github';
@@ -29,7 +28,7 @@ const Login: FC<LoginProps> = () => {
 			<div className="grid grid-cols-1 lg:grid-cols-5 h-screen">
 				<div className="px-4 lg:px-6 col-span-2 w-full h-full flex flex-col items-center justify-center mx-auto max-w-md space-y-8 ">
 					<div className="w-full flex flex-col items-center lg:items-start">
-						<Logo />
+						<LogoAbsolute />
 						<h2 className="mt-6 text-3xl font-bold tracking-tight text-foreground">
 							Welcome <span className="text-primary">Back!</span>
 						</h2>
