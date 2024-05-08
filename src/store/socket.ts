@@ -1,5 +1,4 @@
 import { SOCKET_URL } from '@/constants/socket';
-import { connect } from 'http2';
 import { Socket, io } from 'socket.io-client';
 import { create } from 'zustand';
 

@@ -1,16 +1,14 @@
-version: "3.9"
 services:
-  rtchat-db:
-    image: postgres
-    restart: always
-    container_name: rtchat-db
+  socket:
+    build:
+      context: ./server
     ports:
-      - 5435:5432
-    environment:
-      POSTGRES_PASSWORD: admin
-      PGDATA: /data/postgres
-    volumes:
-      - postgres:/data/postgres
+      - 3000:3000
 
-volumes:
-  postgres:
+  nextjs:
+    build:
+      context: ./nextjs-app
+    ports:
+      - 8080:8080
+    depends_on:
+      - socket
