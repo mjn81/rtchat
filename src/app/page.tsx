@@ -51,7 +51,7 @@ export default async function Home() {
 			</div>
 			<section className="isolate overflow-hidden relative text-center mx-auto h-[calc(100vh-2rem)] px-3 flex flex-col items-center justify-center gap-2">
 				<div className="max-w-5xl space-y-6">
-					<h1 className="text-foreground font-bold text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight">
+					<h1 className="text-foreground font-bold text-4xl lg:text-5xl xl:text-6xl tracking-tight">
 						Experience Seamless Communication with{' '}
 						<span className="text-primary">RTChat</span>
 					</h1>
@@ -61,7 +61,7 @@ export default async function Home() {
 						Confidential, Anytime, Anywhere.
 					</p>
 				</div>
-				<div className="flex items-center justify-center mt-4 gap-4">
+				<div className="flex flex-col md:flex-row items-center justify-center mt-4 gap-4">
 					<DownloadButton />
 					<Link
 						href={isLoggedIn ? '/chat' : '/login'}
@@ -70,7 +70,7 @@ export default async function Home() {
 								variant: 'default',
 								size: 'lg',
 							}),
-							'shadow-lg font-semibold group'
+							'max-md:w-full shadow-lg font-semibold group'
 						)}
 					>
 						{isLoggedIn ? 'Go to Chats' : 'Get Started'}
@@ -93,7 +93,7 @@ export default async function Home() {
 
 			<section
 				id="coming-soon"
-				className="h-[calc(100vh-5rem)] bg-muted border-y-2 border-muted flex flex-col items-center py-16 px-4"
+				className="min-h-[calc(100vh-5rem)] bg-muted border-y-2 border-muted flex flex-col items-center py-16 px-4"
 			>
 				<h2 className="mx-auto text-center text-foreground font-bold text-4xl  lg:text-5xl tracking-tight">
 					Coming Soon!
