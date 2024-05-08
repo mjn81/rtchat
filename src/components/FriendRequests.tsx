@@ -3,7 +3,7 @@ import { friendRequestEventListener } from "@/lib/utils";
 import { useSocketStore } from "@/store/socket";
 import { IncomingFriendRequest } from "@/types/types";
 import axios from "axios";
-import { Check, UserPlus, X } from "lucide-react";
+import { ArchiveX, Check, Ghost, UserPlus, X } from "lucide-react";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 
@@ -54,7 +54,10 @@ const FriendRequests: FC<FriendRequestsProps> = ({ sessionId, incomingFriendRequ
 	return (
 		<>
 			{friendRequests.length === 0 ? (
-				<p className="text-sm text-zinc-500">Noting to show here...</p>
+				<section className="text-lg flex my-20 flex-col items-center justify-center text-gray-400">
+					<ArchiveX className="w-12 h-12" />
+					Noting to show here...
+				</section>
 			) : (
 				friendRequests.map((request) => (
 					<div

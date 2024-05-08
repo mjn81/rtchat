@@ -38,19 +38,21 @@ const FriendRequestSidebarOption: FC<FriendRequestSidebarOptionProps> = ({
     };
 	}, [sessionId]);
   return (
-		<Link
+		<a
 			href="/chat/friends"
-			className="text-gray-700 hover:text-primary hover:bg-gray-50 group flex items-center gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold"
+			className="relative text-gray-700 hover:text-primary lg:hover:bg-gray-50 group flex items-center max-lg:justify-center gap-x-3 rounded-md lg:p-2 lg:text-sm leading-6 font-semibold"
 		>
-			<div className="text-gray-400 group-hover:border-primary group-hover:text-primary flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border text-[0.625rem] font-medium bg-white">
-				<User className="h-4 w-4" />
+			<div className=" text-muted-foreground lg:text-gray-400 lg:group-hover:border-primary lg:group-hover:text-primary flex lg:h-6 lg:w-6 shrink-0 items-center justify-center rounded-lg lg:border text-[0.625rem] font-medium lg:bg-white">
+				<User className="w-6 h-6 sm:w-7 sm:h-7 lg:h-4 lg:w-4" />
 			</div>
-      <p className="truncate">Friend requests</p>
+			<p className="truncate max-lg:hidden">Friend requests</p>
 
-      {unseenRequestCount > 0 ? <div className="rounded-full w-5 h-5 text-xs flex justify-center items-center text-white bg-indigo-600">
-        {unseenRequestCount}
-      </div> : null}
-		</Link>
+			{unseenRequestCount > 0 ? (
+				<div className="max-lg:absolute max-lg:top-2 max-lg:left-4 rounded-full w-5 h-5 text-xs flex justify-center items-center text-white bg-indigo-600">
+					{unseenRequestCount}
+				</div>
+			) : null}
+		</a>
 	);
 }
  

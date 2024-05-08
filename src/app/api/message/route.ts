@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { chatRoomMemberStatus, messages } from '@/db/schema';
 import { authOptions } from '@/lib/auth';
-import { chatEventListener, newMessageEventListener, push } from '@/lib/utils';
+import { chatEventListener, newMessageEventListener, push, pushGroup } from '@/lib/utils';
 import { messageValidator } from '@/lib/validations/message';
 import { and, eq } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
@@ -63,13 +63,12 @@ export async function POST(req: Request) {
 			sender: session.user as User,
 		};
 		// send new Message event to all members of the chat room
-		Promise.all(
-			chatRoomMembers.map(async (member) => {
-				if (member.userId === session.user.id) {
-					return;
-				}
-				await push(notifMessage, newMessageEventListener(member.userId));
-			})
+		// send new Message event to all members of the chat room
+		
+		const newMessageEventListenerList = chatRoomMembers.map((member) => newMessageEventListener(member.userId));
+		await pushGroup(
+			notifMessage,
+			newMessageEventListenerList
 		);
 
 		return Response.json(message[0], {

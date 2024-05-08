@@ -49,6 +49,26 @@ app.post('/api/push', (req, res) => {
 	return res.json({ success: true });
 });
 
+app.post('/api/pushGroup', (req, res) => {
+	if (process.env.SOCKET_SERVER_SECRET !== req.headers.authorization)
+		return res.status(401).json({ error: 'Unauthorized' });
+	const { data, idArray } = req.body;
+	if (!data) {
+		return res.status(400).json({ error: 'eventId and data are required' });
+	}
+	// Check if data is an array
+	if (!Array.isArray(data)) {
+		for(let i = 0; i < idArray.length; i++) {
+			io.emit(idArray[i], data);
+		}
+	} else {
+		for(let i = 0; i < idArray.length; i++) {
+			io.emit(idArray[i], data[i]);
+		}
+	}
+
+	return res.json({ success: true });
+});
 // HTTP server listening
 app.listen(HTTP_PORT, () => {
 	console.log(`HTTP Server running on ${HTTP_PORT}`);

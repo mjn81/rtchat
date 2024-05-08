@@ -1,29 +1,23 @@
+import {createClient, type RedisClientType} from 'redis';
 
-const getUpstashRedisEnv = () => {
-  const upsatashRedisRestUrl = process.env.UPSTASH_REDIS_REST_URL;
-  const authToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!upsatashRedisRestUrl || !authToken) {
-    throw new Error('UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN environment variables are required');
+const getRedisEnv = () => {
+  const redisUrl = process.env.REDIS_URL;
+  if (!redisUrl) {
+    throw new Error('REDIS_URL is not set');
   }
-  return { upsatashRedisRestUrl, authToken };
+  return { redisUrl };
 }
 
-type Command = 'zrange' | 'sismember' | 'get' | 'smembers' | 'del' | 'incr';
+let redisClient: RedisClientType | null = null;
 
-export async function fetchRedis(command: Command, ...args: (string | number)[]) {
-  
-  const { upsatashRedisRestUrl, authToken } = getUpstashRedisEnv();
-  const commandUrl = `${upsatashRedisRestUrl}/${command}/${args.join('/')}`
-  const response = await fetch(commandUrl, {
-		headers: {
-			Authorization: `Bearer ${authToken}`,
-		},
-		cache: 'no-store',
-	});
-  
-  if (!response.ok) {
-    throw new Error(`Error executing Redis command: ${response.statusText}`);
+export const getRedisClient = async () => {
+  if (!redisClient) {
+    const { redisUrl } = getRedisEnv();
+    redisClient = await (createClient({
+      url: redisUrl,
+    }).connect()) as RedisClientType;
+
+    return redisClient;
   }
-  const data = await response.json();
-  return data.result;
+  return redisClient;
 }

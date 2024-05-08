@@ -18,6 +18,21 @@ export const push = async (data: any, id: string) => {
 	);
 };
 
+export const pushGroup = async (data: any, idArray: string[]) => {	
+	return axios.post(
+		`${SOCKET_API_URL}/api/pushGroup`,
+		{
+			data,
+			idArray,
+		},
+		{
+			headers: {
+				Authorization: process.env.SOCKET_SERVER_SECRET,
+			},
+		}
+	);
+}
+
 export const chatEventListener = (chatId: string) => `chat:${chatId}`;
 export const friendRequestEventListener = (userId: string) =>
 	`friendRequest:${userId}`;

@@ -130,7 +130,7 @@ const SidebarChatList: FC<SidebarChatListProps> = ({
 					No chats yet
 				</div>
 			) : null}
-			<ul role="list" className="max-h-[25rem] overflow-y-auto -mx-2 space-y-1">
+			<ul role="list" className="flex-1 lg:max-h-[24rem] overflow-y-auto -mx-2 space-y-1">
 				{chats.sort().map((chat) => {
 					const unseenMessagesCount = unseenMessages.get(chat.id) ?? 0;
 					return (

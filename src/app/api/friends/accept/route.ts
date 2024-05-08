@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { and, eq, or } from "drizzle-orm";
 import { chatRooms, friendRequestStatus, friendRequests } from "@/db/schema";
-import { changeFriendRequestStatusEventListener, createChatRoomForTwoFriends, newRoomEventListener, push } from "@/lib/utils";
+import { changeFriendRequestStatusEventListener, createChatRoomForTwoFriends, newRoomEventListener, push, pushGroup } from "@/lib/utils";
 import { addMembersToChatRoom } from "@/helpers/query/chatRoom";
 
 
@@ -110,14 +110,15 @@ export async function POST(req: Request) {
 			name: session.user?.name ?? session.user.email,
 		}];
 		// push for new room creation
-		await Promise.all(usersInfo.map(({id, name}) => {
-			// get each friend info and change chatroom name to friend name
-			const room = {
-				...friendsRoom,
-				name,
-			};
-			return push(room, newRoomEventListener(id))
+		// rewrite with pushGroup
+		const newRoomEventListenerList = usersInfo.map(({ id }) => newRoomEventListener(id));
+		const roomList = usersInfo.map(({ name }) => ({
+			...friendsRoom,
+			name,
 		}));
+
+		await pushGroup(roomList, newRoomEventListenerList);
+		
 		return new Response('OK');
 	} catch (error) {
     if (error instanceof z.ZodError) {

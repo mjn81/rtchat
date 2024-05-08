@@ -1,9 +1,19 @@
 import { db } from '@/lib/db';
-import { chatRoomMemberStatus, chatRoomMembers, chatRooms, friendRequestStatus, friendRequests } from '@/db/schema';
+import {
+	chatRoomMemberStatus,
+	chatRoomMembers,
+	chatRooms,
+	friendRequestStatus,
+	friendRequests,
+} from '@/db/schema';
 import { nanoid } from 'nanoid';
 import { and, count, eq } from 'drizzle-orm';
-import { fetchRedis } from '../redis';
-import { createUnseenChatUserKey, getFriendFromChatRoomName, isUserPrivateChat } from '@/lib/utils';
+import { getRedisClient } from '../redis';
+import {
+	createUnseenChatUserKey,
+	getFriendFromChatRoomName,
+	isUserPrivateChat,
+} from '@/lib/utils';
 
 export const addMembersToChatRoom = async (
 	chatRoomId: string,
@@ -38,10 +48,7 @@ export const getChatsWithUnseenCount = async (userId: string) => {
 	const processesChats = await Promise.all(
 		chats?.map(async (chat) => {
 			if (isUserPrivateChat(chat.chatRoom.name)) {
-				const friendId = getFriendFromChatRoomName(
-					chat.chatRoom.name,
-					userId
-				);
+				const friendId = getFriendFromChatRoomName(chat.chatRoom.name, userId);
 				const friendDetail = await db?.query.users.findFirst({
 					columns: {
 						email: true,
@@ -69,21 +76,25 @@ export const getChatsWithUnseenCount = async (userId: string) => {
 				eq(friendRequests.status, friendRequestStatus.enumValues[0])
 			)
 		);
-
+	const redis = await getRedisClient();
 	const chatIdUnseen: Map<string, number> = new Map();
-	await Promise.all(
-		processesChats.map(async ({ id }) => {
-			const unseen = await fetchRedis(
-				'get',
-				createUnseenChatUserKey(id, userId)
-			);
-			chatIdUnseen.set(id, Number(unseen) ?? 0);
-		})
+
+
+	if (processesChats.length === 0) {
+		return { processesChats, chatIdUnseen, unseenRequestCount };
+	}
+	const unseenChatUserKeyList = processesChats.map(({ id }) =>
+		createUnseenChatUserKey(id, userId)
 	);
 
-	return { processesChats, chatIdUnseen, unseenRequestCount };
-}
+	const unseenList = await redis.mGet(unseenChatUserKeyList);
+	
+	for(let i = 0; i < unseenList.length; i++) {
+		chatIdUnseen.set(processesChats[i].id, Number(unseenList[i]) ?? 0);
+	}
 
+	return { processesChats, chatIdUnseen, unseenRequestCount };
+};
 
 export const generateChatRoomUrl = (name: string) => {
 	return name.replace(/\s/g, '_').toLowerCase() + nanoid(10);

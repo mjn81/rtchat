@@ -18,6 +18,7 @@ import React, {
 } from 'react';
 import { Dialog, DialogTrigger } from './ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import BackButton from './BackButton';
 
 interface RoomHeaderProps extends PropsWithChildren {
 	initialRoomName: string;
@@ -89,9 +90,7 @@ const RoomHeader: FC<RoomHeaderProps> = ({
 	return (
 		<Dialog>
 			<div className="flex items-center gap-2">
-				<button onClick={() => router.replace('/chat')}>
-					<ChevronLeft className="lg:hidden w-8 h-8" />
-				</button>
+				<BackButton />
 				<DialogTrigger asChild>
 					<div className="relative cursor-pointer flex items-center space-x-4">
 						<div className="relative">

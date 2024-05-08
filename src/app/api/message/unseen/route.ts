@@ -1,8 +1,6 @@
-import { fetchRedis } from '@/helpers/redis';
+import { getRedisClient } from '@/helpers/redis';
 import { authOptions } from '@/lib/auth';
 import { createUnseenChatUserKey } from '@/lib/utils';
-import { messageValidator } from '@/lib/validations/message';
-import { eq } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
 import { z } from 'zod';
 
@@ -20,12 +18,9 @@ export async function POST(req: Request) {
 		if (!session) {
 			return new Response('Unauthorized', { status: 401 });
 		}
+		const redis = await getRedisClient();
+		await redis.incr(createUnseenChatUserKey(chatRoomId, session.user.id));
 
-			await fetchRedis(
-				'incr',
-				createUnseenChatUserKey(chatRoomId, session.user.id)
-			);
-		
 		return new Response('OK');
 	} catch (error) {
 		if (error instanceof z.ZodError) {
@@ -49,13 +44,14 @@ export async function DELETE(req: Request) {
 		if (!session) {
 			return new Response('Unauthorized', { status: 401 });
 		}
-
-    // delete key
-    await fetchRedis('del',createUnseenChatUserKey(idToRemove, session.user.id));
-
+		const redis = await getRedisClient();
+		// delete key
+		await redis.del(createUnseenChatUserKey(idToRemove, session.user.id));
+		
 		return new Response('OK');
 	} catch (error) {
 		if (error instanceof z.ZodError) {
+			console.log(error);
 			return new Response('Invalid request payload.', {
 				status: 422,
 			});
@@ -66,4 +62,3 @@ export async function DELETE(req: Request) {
 		});
 	}
 }
-

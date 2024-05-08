@@ -5,6 +5,7 @@ import { signIn } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import Logo from '@/components/Logo';
 // import toast from 'react-hot-toast';
 
 interface LoginProps {}
@@ -28,18 +29,13 @@ const Login: FC<LoginProps> = () => {
 			<div className="grid grid-cols-1 lg:grid-cols-5 h-screen">
 				<div className="px-4 lg:px-6 col-span-2 w-full h-full flex flex-col items-center justify-center mx-auto max-w-md space-y-8 ">
 					<div className="w-full flex flex-col items-center lg:items-start">
-						<Image
-							className="lg:absolute lg:inset-0"
-							src="/logo.svg"
-							alt="RTChat"
-							width={128}
-							height={128}
-						/>
+						<Logo />
 						<h2 className="mt-6 text-3xl font-bold tracking-tight text-foreground">
 							Welcome <span className="text-primary">Back!</span>
 						</h2>
-						<p className='text-muted-foreground font-light leading-5 text-sm mt-2'>
-							If you don&apos;t have an account already. Don&apos;t worry just use the buttons bellow and we will take care of it.
+						<p className="text-muted-foreground font-light leading-5 text-sm mt-2">
+							If you don&apos;t have an account already. Don&apos;t worry just
+							use the buttons bellow and we will take care of it.
 						</p>
 					</div>
 					<div className="space-y-3 w-full">
@@ -70,7 +66,7 @@ const Login: FC<LoginProps> = () => {
 							variant="outline"
 							className="max-w-sm mx-auto w-full text-sm"
 						>
-							{isLoading ==='github' ? (
+							{isLoading === 'github' ? (
 								<Loader2 className="w-4 h-4 animate-spin mr-1" />
 							) : (
 								<Image
@@ -90,11 +86,12 @@ const Login: FC<LoginProps> = () => {
 					className="h-full w-full login-image relative aspect-square overflow-hidden hidden lg:block lg:col-span-3 bg-indigo-500 border-l-2 shadow-inner border-r-indigo-600"
 				>
 					<div className="absolute flex flex-col p-10 items-start justify-end gap-3 inset-0 w-full h-full bg-indigo-900/80">
-						<h1 className='text-3xl text-white font-bold'>
+						<h1 className="text-3xl text-white font-bold">
 							Real time messaging got easier with RTChat!
 						</h1>
-						<p className='text-gray-300 font-semibold'>
-							Join the community and start chatting with your friends and family.
+						<p className="text-gray-300 font-semibold">
+							Join the community and start chatting with your friends and
+							family.
 						</p>
 					</div>
 				</div>

@@ -6,6 +6,8 @@ import { and, eq } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
 import { notFound } from 'next/navigation';
 import type { FC } from 'react';
+import { ChevronLeft } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 
 interface RequestsProps {}
 
@@ -26,7 +28,10 @@ const Requests: FC<RequestsProps> = async () => {
 
 	return (
 		<main>
-			<h1 className="font-bold text-5xl mb-8">Add a friend</h1>
+			<section className="flex gap-2 items-center mb-8">
+				<BackButton />
+				<h1 className="font-bold text-sm sm:text-lg md:text-2xl lg:text-5xl">Accept friend requests</h1>
+			</section>
 			<div className="flex flex-col gap-4">
 				<FriendRequests
 					sessionId={session.user.id}
